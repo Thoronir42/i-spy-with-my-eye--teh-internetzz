@@ -1,5 +1,6 @@
 package cz.zcu.kiv.nlp.cdNemovitosti;
 
+import cz.zcu.kiv.nlp.ir.DocumentEvaluator;
 import cz.zcu.kiv.nlp.ir.IHTMLDownloader;
 import cz.zcu.kiv.nlp.tools.Utils;
 import org.apache.log4j.Logger;
@@ -8,6 +9,7 @@ import us.codecraft.xsoup.XPathEvaluator;
 import java.io.*;
 import java.nio.file.Files;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class CdNemovitostiCrawler {
@@ -41,11 +43,12 @@ public class CdNemovitostiCrawler {
                 e.printStackTrace();
             }
         } else {
-            // todo: find page count
-            int max = 18;
+            int max = 2;
             for (int i = 0; i < max; i++) {
                 String link = SITE + SEARCH_SUFFIX + "&page=" + i;
-                urlsSet.addAll(downloader.processUrl(link, "//div[contains(@class,'viewerBox')]/div[contains(@class, 'itm')]//a/@href"));
+                List<String> items = downloader.processUrl(link, "//div[contains(@class,'viewerBox')]/div[contains(@class, 'itm')]//a/@href");
+
+                urlsSet.addAll(items);
             }
             Utils.saveFile(new File(storage + Utils.SDF.format(System.currentTimeMillis()) + "_links_size_" + urlsSet.size() + ".txt"),
                     urlsSet);
@@ -71,10 +74,7 @@ public class CdNemovitostiCrawler {
             results.put(key, new HashMap<>());
         }
 
-        String link = url;
-        if (!link.contains(SITE)) {
-            link = SITE + url;
-        }
+        String link = normalizeUrl(url);
 
         //Download and extract data according to xpathMap
         Map<String, List<String>> httpResult = downloader.processUrl(link, actions);
@@ -102,9 +102,50 @@ public class CdNemovitostiCrawler {
         }
     }
 
+    public List<Property> retrieveProperties(Collection<String> urls) {
+        List<Property> properties = new ArrayList<>();
+        Function<DocumentEvaluator, Property> transformFunction = (de) -> {
+            Property property = new Property()
+                    .setUrl(de.getUrl())
+                    .setTitle(de.string("//div[@class='property_container']/h1"))
+                    .setEvidenceNumber(de.string("//div[@class='property_head']/div[@class='fleft']//strong"))
+                    .setPricePerSquareMeter(de.string("//div[@class='priceBox']/p"));
+
+            property
+                    .setRegion(de.string("//div[contains(@class, 'generalBox')]/div[@class='itm'][1]/div[@class='val']"))
+                    .setDistrict(de.string("//div[contains(@class, 'generalBox')]/div[@class='itm'][2]/div[@class='val']"))
+                    .setCity(de.string("//div[contains(@class, 'generalBox')]/div[@class='itm'][3]/div[@class='val']"))
+                    .setCatasterZone(de.string("//div[contains(@class, 'generalBox')]/div[@class='itm'][4]/div[@class='val']"))
+                    .setSurface(de.string("//div[contains(@class, 'generalBox')]/div[@class='itm'][5]/div[@class='val']"));
+
+            property
+                    .setWater(de.string("//div[@class='attrsBox frm']/div[@class='itm'][1]/div[@class='val']"))
+                    .setElectricity(de.string("//div[@class='attrsBox frm']/div[@class='itm'][2]/div[@class='val']"))
+                    .setCanalization(de.string("//div[@class='attrsBox frm']/div[@class='itm'][3]/div[@class='val']"));
+
+
+            return property;
+        };
+
+        int i = 0;
+        for (String url : urls) {
+
+            properties.add(downloader.processUrl(normalizeUrl(url), transformFunction));
+            if (i++ > 10) {
+                break;
+            }
+        }
+
+        return properties;
+    }
+
     public CdNemovitostiCrawler setPolitenessInterval(int milliseconds) {
         this.politenessInterval = milliseconds;
         return this;
+    }
+
+    private String normalizeUrl(String url) {
+        return url.contains(SITE) ? url : SITE + url;
     }
 
     public void close() {

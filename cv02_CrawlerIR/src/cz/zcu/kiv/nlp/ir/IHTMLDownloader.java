@@ -1,10 +1,12 @@
 package cz.zcu.kiv.nlp.ir;
 
+import org.jsoup.nodes.Document;
 import us.codecraft.xsoup.XPathEvaluator;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 
 /**
  * This class is a demonstration of how crawler can be used to download a website
@@ -36,6 +38,8 @@ public interface IHTMLDownloader {
 
     public List<String> processUrl(String url, String xPath);
     public List<String> processUrl(String url, XPathEvaluator xPath);
+
+    public <T> T processUrl(String url, Function<DocumentEvaluator, T> transform);
 
 
     /**

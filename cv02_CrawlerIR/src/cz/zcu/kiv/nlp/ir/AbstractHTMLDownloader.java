@@ -6,6 +6,7 @@ import us.codecraft.xsoup.XPathEvaluator;
 import us.codecraft.xsoup.Xsoup;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -52,6 +53,19 @@ public abstract class AbstractHTMLDownloader implements IHTMLDownloader {
 
         return xpathMap.entrySet().stream()
                 .collect(Collectors.toMap(entry -> entry.getKey(), entry -> entry.getValue().evaluate(document).list()));
+    }
+
+    @Override
+    public <T> T processUrl(String url, Function<DocumentEvaluator, T> transform) {
+        log.info("Processing url: " + url);
+
+        Document document = getDocument(url);
+        if(document == null) {
+            log.warn("Failed to get document from url '" + url + "'");
+            return null;
+        }
+
+        return transform.apply(new DocumentEvaluator(document, url));
     }
 
     protected abstract Document getDocument(String url);

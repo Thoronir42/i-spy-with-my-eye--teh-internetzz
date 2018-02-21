@@ -10,10 +10,7 @@ import us.codecraft.xsoup.XPathEvaluator;
 import us.codecraft.xsoup.Xsoup;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -21,11 +18,6 @@ import java.util.stream.Collectors;
  * Created by Tigi on 31.10.2014.
  */
 public class CdNemovitostiMain {
-    /**
-     * Xpath expressions to extract and their descriptions.
-     */
-    private final static Map<String, XPathEvaluator> xpathMap = createXpathMap();
-
     private static final String STORAGE = "./storage/CD-Nemovitosti";
 
     private static final Logger log = Logger.getLogger(CdNemovitostiMain.class);
@@ -54,30 +46,41 @@ public class CdNemovitostiMain {
             System.exit(1);
         }
 
+        Map<String, XPathEvaluator> documentActions = createXpathMap();
+
 //        HTMLDownloader downloader = new HTMLDownloader();
         AbstractHTMLDownloader downloader = new HTMLDownloaderSelenium("./cv02_CrawlerIR/chromedriver.exe");
 
         CdNemovitostiCrawler crawler = new CdNemovitostiCrawler(downloader)
                 .setPolitenessInterval(1200); // Be polite and don't send requests too often.
 
+        RecordIO io = new RecordIO();
+
 
 
         Collection<String> urlsSet = crawler.retrieveLinks(STORAGE + "_urls.txt");
 
-        for (String name : xpathMap.keySet()) {
-            String fileName = STORAGE + "/" + Utils.SDF.format(System.currentTimeMillis()) + "_" + name + ".txt";
-            crawler.openPrintStream(name, fileName);
-
-        }
-
-        int count = 0;
-        for (String url : urlsSet) {
-            crawler.processResultUrl(url, xpathMap);
-
-            if (++count % 100 == 0) {
-                log.info(count + " / " + urlsSet.size() + " = " + count / (0.0 + urlsSet.size()) + "% done.");
+        boolean standardAction = false;
+        if(standardAction) {
+            for (String name : documentActions.keySet()) {
+                String fileName = STORAGE + "/" + Utils.SDF.format(System.currentTimeMillis()) + "_" + name + ".txt";
+                crawler.openPrintStream(name, fileName);
             }
+
+            int count = 0;
+            for (String url : urlsSet) {
+                crawler.processResultUrl(url, documentActions);
+
+                if (++count % 100 == 0) {
+                    log.info(count + " / " + urlsSet.size() + " = " + count / (0.0 + urlsSet.size()) + "% done.");
+                }
+            }
+        } else {
+            List<Property> properties = crawler.retrieveProperties(urlsSet);
+            io.save(STORAGE + "/" + Utils.SDF.format(System.currentTimeMillis()) + "_serialized.txt" , properties);
         }
+
+
 
 
         // Save links that failed in some way.

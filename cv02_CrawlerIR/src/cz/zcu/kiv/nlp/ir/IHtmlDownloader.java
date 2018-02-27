@@ -12,7 +12,7 @@ import java.util.function.Function;
  * This class is a demonstration of how crawler can be used to download a website
  * Created by Tigi on 31.10.2014.
  */
-public interface IHTMLDownloader {
+public interface IHtmlDownloader {
 
     /**
      * Get failed links.
@@ -27,19 +27,10 @@ public interface IHTMLDownloader {
     public void emptyFailedLinks();
 
 
-    /**
-     * Downloads given url page and extracts xpath expressions.
-     *
-     * @param url      page url
-     * @param xpathMap pairs of description and xpath expression
-     * @return pairs of descriptions and extracted values
-     */
-    public Map<String, List<String>> processUrl(String url, Map<String, XPathEvaluator> xpathMap);
-
     public List<String> processUrl(String url, String xPath);
     public List<String> processUrl(String url, XPathEvaluator xPath);
 
-    public <T> T processUrl(String url, Function<DocumentEvaluator, T> transform);
+    public <T> T processUrl(String url, Function<DocumentEvaluator, T> evaluate);
 
 
     /**

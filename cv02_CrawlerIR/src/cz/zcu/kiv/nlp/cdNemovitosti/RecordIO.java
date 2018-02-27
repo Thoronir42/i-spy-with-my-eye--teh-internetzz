@@ -4,12 +4,13 @@ import org.apache.log4j.Logger;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 public class RecordIO {
     private static final Logger log = Logger.getLogger(RecordIO.class);
 
-    public void save(String path, List<Property> list) {
+    public void save(String path, Collection<Estate> list) {
         try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(path))) {
             out.writeObject(list);
             log.info(String.format("Serialized data is saved in %s\n", path));
@@ -18,19 +19,19 @@ public class RecordIO {
         }
     }
 
-    public List<Property> load(File serializedFile) {
+    public Collection<Estate> load(String serializedFilePath) {
         final Object object;
-        try (ObjectInputStream objectInputStream = new ObjectInputStream(new FileInputStream(serializedFile))) {
+        try (ObjectInputStream objectInputStream = new ObjectInputStream(new FileInputStream(serializedFilePath))) {
             object = objectInputStream.readObject();
-            if (!(object instanceof List)) {
-                throw new RuntimeException("Deserialized object is not a list");
+            if (!(object instanceof Collection)) {
+                throw new RuntimeException("Deserialized object is not a collection");
             }
-            List deserialized = (List)object;
+            Collection deserialized = (Collection)object;
 
-            List<Property> result = new ArrayList<>();
+            List<Estate> result = new ArrayList<>();
             for(Object item : deserialized) {
-                if(item instanceof Property) {
-                    result.add((Property) item);
+                if(item instanceof Estate) {
+                    result.add((Estate) item);
                     continue;
                 }
                 log.warn("Deserialization contained invalid type");

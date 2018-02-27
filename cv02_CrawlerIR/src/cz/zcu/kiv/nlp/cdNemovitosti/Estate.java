@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Property implements Serializable {
+public class Estate implements Serializable {
     private String url;
     private String title;
 
@@ -22,14 +22,14 @@ public class Property implements Serializable {
 
     private List<String> picturesUrls = new ArrayList<>();
 
-    public Property() {
+    public Estate() {
     }
 
     public String getUrl() {
         return url;
     }
 
-    public Property setUrl(String url) {
+    public Estate setUrl(String url) {
         this.url = url;
         return this;
     }
@@ -38,7 +38,7 @@ public class Property implements Serializable {
         return title;
     }
 
-    public Property setTitle(String title) {
+    public Estate setTitle(String title) {
         this.title = title;
         return this;
     }
@@ -47,7 +47,7 @@ public class Property implements Serializable {
         return evidenceNumber;
     }
 
-    public Property setEvidenceNumber(String evidenceNumber) {
+    public Estate setEvidenceNumber(String evidenceNumber) {
         this.evidenceNumber = evidenceNumber;
         return this;
     }
@@ -56,7 +56,7 @@ public class Property implements Serializable {
         return pricePerSquareMeter;
     }
 
-    public Property setPricePerSquareMeter(String pricePerSquareMeter) {
+    public Estate setPricePerSquareMeter(String pricePerSquareMeter) {
         this.pricePerSquareMeter = pricePerSquareMeter;
         return this;
     }
@@ -65,7 +65,7 @@ public class Property implements Serializable {
         return region;
     }
 
-    public Property setRegion(String region) {
+    public Estate setRegion(String region) {
         this.region = region;
         return this;
     }
@@ -74,7 +74,7 @@ public class Property implements Serializable {
         return district;
     }
 
-    public Property setDistrict(String district) {
+    public Estate setDistrict(String district) {
         this.district = district;
         return this;
     }
@@ -83,7 +83,7 @@ public class Property implements Serializable {
         return city;
     }
 
-    public Property setCity(String city) {
+    public Estate setCity(String city) {
         this.city = city;
         return this;
     }
@@ -92,7 +92,7 @@ public class Property implements Serializable {
         return catasterZone;
     }
 
-    public Property setCatasterZone(String catasterZone) {
+    public Estate setCatasterZone(String catasterZone) {
         this.catasterZone = catasterZone;
         return this;
     }
@@ -101,7 +101,7 @@ public class Property implements Serializable {
         return surface;
     }
 
-    public Property setSurface(String surface) {
+    public Estate setSurface(String surface) {
         this.surface = surface;
         return this;
     }
@@ -110,7 +110,7 @@ public class Property implements Serializable {
         return water;
     }
 
-    public Property setWater(String water) {
+    public Estate setWater(String water) {
         this.water = water;
         return this;
     }
@@ -119,7 +119,7 @@ public class Property implements Serializable {
         return electricity;
     }
 
-    public Property setElectricity(String electricity) {
+    public Estate setElectricity(String electricity) {
         this.electricity = electricity;
         return this;
     }
@@ -128,7 +128,7 @@ public class Property implements Serializable {
         return canalization;
     }
 
-    public Property setCanalization(String canalization) {
+    public Estate setCanalization(String canalization) {
         this.canalization = canalization;
         return this;
     }
@@ -137,7 +137,7 @@ public class Property implements Serializable {
         return picturesUrls;
     }
 
-    public Property setPicturesUrls(List<String> picturesUrls) {
+    public Estate setPicturesUrls(List<String> picturesUrls) {
         this.picturesUrls = picturesUrls;
         return this;
     }

@@ -1,5 +1,7 @@
 package cz.zcu.kiv.nlp.tools;
 
+import org.apache.log4j.Logger;
+
 import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -12,6 +14,8 @@ import java.util.Map;
  * Created by Tigi on 22.9.2014.
  */
 public class Utils {
+	private static Logger log = Logger.getLogger(Utils.class);
+
 	public static final java.text.DateFormat SDF = new SimpleDateFormat("yyyy-MM-dd_HH_mm_SS");
 
 	/**
@@ -57,32 +61,26 @@ public class Utils {
 	 * @param collection lines of text to save
 	 */
 	public static void saveFile(File file, Collection<String> collection) {
-		try {
-			PrintStream printStream = new PrintStream(new BufferedOutputStream(new FileOutputStream(file)));
+		try (PrintStream printStream = new PrintStream(new BufferedOutputStream(new FileOutputStream(file)))) {
 			for (String text : collection) {
 				printStream.println(text);
 			}
-			printStream.close();
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
 	}
 
 	/**
-	 * Read lines from the stream; lines are trimmed and empty lines are ignored.
+	 * Read lines from a file; lines are trimmed and empty lines are ignored.
 	 *
-	 * @param inputStream stream
+	 * @param f file
 	 * @return list of lines
 	 */
-	public static List<String> readLines(InputStream inputStream) {
-		if (inputStream == null) {
-			throw new IllegalArgumentException("Cannot locate stream");
-		}
-
-		try {
+	public static List<String> readLines(File f) throws IOException {
+		try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(f)))) {
 			List<String> result = new ArrayList<>();
 
-			BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
+
 			String line;
 
 			while ((line = br.readLine()) != null) {
@@ -90,10 +88,11 @@ public class Utils {
 					result.add(line.trim());
 				}
 			}
-			inputStream.close();
+
 			return result;
 		} catch (IOException e) {
-			throw new IllegalStateException(e);
+			log.warn(e);
+			throw e;
 		}
 	}
 }

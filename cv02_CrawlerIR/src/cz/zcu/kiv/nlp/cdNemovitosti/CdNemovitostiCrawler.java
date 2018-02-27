@@ -1,16 +1,14 @@
 package cz.zcu.kiv.nlp.cdNemovitosti;
 
 import cz.zcu.kiv.nlp.ir.DocumentEvaluator;
-import cz.zcu.kiv.nlp.ir.IHTMLDownloader;
+import cz.zcu.kiv.nlp.ir.IHtmlDownloader;
 import cz.zcu.kiv.nlp.tools.Utils;
 import org.apache.log4j.Logger;
-import us.codecraft.xsoup.XPathEvaluator;
 
 import java.io.*;
-import java.nio.file.Files;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 public class CdNemovitostiCrawler {
     private static Logger log = Logger.getLogger(CdNemovitostiCrawler.class);
@@ -18,83 +16,57 @@ public class CdNemovitostiCrawler {
     private static String SITE = "http://nemovitosti.ceskedrahy.cz";
     private static String SEARCH_SUFFIX = "/Results.aspx?fgroup=L";
 
-    private int politenessInterval;
+    protected int politenessInterval;
 
-    private final IHTMLDownloader downloader;
+    protected final IHtmlDownloader downloader;
 
-    private Map<String, PrintStream> printStreamMap = new HashMap<>();
+    private Function<DocumentEvaluator, Estate> evalFunction = getDocumentEvaluatorEstateFunction();
 
-    CdNemovitostiCrawler(IHTMLDownloader downloader) {
+
+
+    CdNemovitostiCrawler(IHtmlDownloader downloader) {
 
         this.downloader = downloader;
         this.politenessInterval = 100;
     }
 
-    public Collection<String> retrieveLinks(String storage) {
-        Collection<String> urlsSet = new HashSet<>();
-        //Try to load links
-        File links = new File(storage);
-        if (links.exists()) {
-            try {
-                List<String> lines = Files.lines(new File(storage).toPath()).collect(Collectors.toList());
-
-                urlsSet.addAll(lines);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        } else {
-            int max = 2;
-            for (int i = 0; i < max; i++) {
-                String link = SITE + SEARCH_SUFFIX + "&page=" + i;
-                List<String> items = downloader.processUrl(link, "//div[contains(@class,'viewerBox')]/div[contains(@class, 'itm')]//a/@href");
-
-                urlsSet.addAll(items);
-            }
-            Utils.saveFile(new File(storage + Utils.SDF.format(System.currentTimeMillis()) + "_links_size_" + urlsSet.size() + ".txt"),
-                    urlsSet);
-        }
-
-        return urlsSet;
-    }
-
-    public void openPrintStream(String name, String storage) {
-        File file = new File(storage);
-        PrintStream printStream = null;
+    public Collection<String> loadEstateLinks(String path) {
         try {
-            printStream = new PrintStream(new FileOutputStream(file));
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
+            List<String> strings = Utils.readLines(new File(path));
+            log.info("Loaded " + strings.size() + " estate links");
+            return strings;
+        } catch (IOException e) {
+            return null;
         }
-        printStreamMap.put(name, printStream);
     }
 
-    public void processResultUrl(String url, Map<String, XPathEvaluator> actions) {
-        Map<String, Map<String, List<String>>> results = new HashMap<>();
-        for (String key : actions.keySet()) {
-            results.put(key, new HashMap<>());
+    public Collection<String> fetchEstateLinks() {
+        String estateLinkXPath = "//div[contains(@class,'viewerBox')]/div[contains(@class, 'itm')]//a/@href";
+
+        AtomicInteger max = new AtomicInteger(10); // todo: optimize initial page count?
+        String listingUrl = SITE + SEARCH_SUFFIX + "&page=" + 0;
+
+        Collection<String> links =  downloader.processUrl(listingUrl, (de) -> {
+            max.set(de.integer(""));
+            return de.strings(estateLinkXPath);
+        });
+
+        for (int i = 1; i < max.get(); i++) {
+            listingUrl = SITE + SEARCH_SUFFIX + "&page=" + i;
+
+            List<String> items = downloader.processUrl(listingUrl, estateLinkXPath);
+            links.addAll(items);
         }
 
-        String link = normalizeUrl(url);
+        return links;
+    }
 
-        //Download and extract data according to xpathMap
-        Map<String, List<String>> httpResult = downloader.processUrl(link, actions);
+    public Estate retrieveEstate(String url) {
+        bePolite();
+        return downloader.processUrl(normalizeUrl(url), evalFunction);
+    }
 
-        for (Map.Entry<String, Map<String, List<String>>> action : results.entrySet()) {
-            // map of given action
-            Map<String, List<String>> map = action.getValue();
-
-            List<String> list = httpResult.get(action.getKey());
-            if (list != null) {
-                map.put(url, list);
-                log.info(Arrays.toString(list.toArray()));
-                //print
-                PrintStream printStream = printStreamMap.get(action.getKey());
-                for (String result : list) {
-                    printStream.println(url + "\t" + result);
-                }
-            }
-        }
-
+    public void bePolite() {
         try {
             Thread.sleep(politenessInterval);
         } catch (InterruptedException e) {
@@ -102,10 +74,24 @@ public class CdNemovitostiCrawler {
         }
     }
 
-    public List<Property> retrieveProperties(Collection<String> urls) {
-        List<Property> properties = new ArrayList<>();
-        Function<DocumentEvaluator, Property> transformFunction = (de) -> {
-            Property property = new Property()
+    public CdNemovitostiCrawler setPolitenessInterval(int milliseconds) {
+        this.politenessInterval = milliseconds;
+        return this;
+    }
+
+    public String normalizeUrl(String url) {
+        return url.contains(SITE) ? url : SITE + url;
+    }
+
+    public void close() {
+        log.info("Closing crawler");
+        downloader.close();
+    }
+
+
+    private static Function<DocumentEvaluator, Estate> getDocumentEvaluatorEstateFunction() {
+        return (de) -> {
+            Estate property = new Estate()
                     .setUrl(de.getUrl())
                     .setTitle(de.string("//div[@class='property_container']/h1"))
                     .setEvidenceNumber(de.string("//div[@class='property_head']/div[@class='fleft']//strong"))
@@ -126,31 +112,5 @@ public class CdNemovitostiCrawler {
 
             return property;
         };
-
-        int i = 0;
-        for (String url : urls) {
-
-            properties.add(downloader.processUrl(normalizeUrl(url), transformFunction));
-            if (i++ > 10) {
-                break;
-            }
-        }
-
-        return properties;
-    }
-
-    public CdNemovitostiCrawler setPolitenessInterval(int milliseconds) {
-        this.politenessInterval = milliseconds;
-        return this;
-    }
-
-    private String normalizeUrl(String url) {
-        return url.contains(SITE) ? url : SITE + url;
-    }
-
-    public void close() {
-        log.info("Closing crawler");
-        printStreamMap.values().forEach(PrintStream::close);
-        downloader.close();
     }
 }

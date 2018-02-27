@@ -13,16 +13,18 @@ import java.util.stream.Collectors;
  * This class is a demonstration of how crawler can be used to download a website
  * Created by Tigi on 31.10.2014.
  */
-public abstract class AbstractHTMLDownloader implements IHTMLDownloader {
+public abstract class AbstractHTMLDownloader implements IHtmlDownloader {
 
     static final Logger log = Logger.getLogger(AbstractHTMLDownloader.class);
     Set<String> failedLinks = new HashSet<>();
 
 
+    @Override
     public final List<String> processUrl(String url, String xPath) {
         return processUrl(url, Xsoup.compile(xPath));
     }
 
+    @Override
     public final List<String> processUrl(String url, XPathEvaluator xPath) {
         log.info("Processing url: " + url);
 
@@ -35,28 +37,8 @@ public abstract class AbstractHTMLDownloader implements IHTMLDownloader {
         return xPath.evaluate(document).list();
     }
 
-    /**
-     * Downloads given url page and extracts xpath expressions.
-     *
-     * @param url      page url
-     * @param xpathMap pairs of description and xpath expression
-     * @return pairs of descriptions and extracted values
-     */
-    public Map<String, List<String>> processUrl(String url, Map<String, XPathEvaluator> xpathMap) {
-        log.info("Processing url: " + url);
-
-        Document document = getDocument(url);
-        if(document == null) {
-            log.warn("Failed to get document from url '" + url + "'");
-            return null;
-        }
-
-        return xpathMap.entrySet().stream()
-                .collect(Collectors.toMap(entry -> entry.getKey(), entry -> entry.getValue().evaluate(document).list()));
-    }
-
     @Override
-    public <T> T processUrl(String url, Function<DocumentEvaluator, T> transform) {
+    public <T> T processUrl(String url, Function<DocumentEvaluator, T> evaluate) {
         log.info("Processing url: " + url);
 
         Document document = getDocument(url);
@@ -65,7 +47,7 @@ public abstract class AbstractHTMLDownloader implements IHTMLDownloader {
             return null;
         }
 
-        return transform.apply(new DocumentEvaluator(document, url));
+        return evaluate.apply(new DocumentEvaluator(document, url));
     }
 
     protected abstract Document getDocument(String url);

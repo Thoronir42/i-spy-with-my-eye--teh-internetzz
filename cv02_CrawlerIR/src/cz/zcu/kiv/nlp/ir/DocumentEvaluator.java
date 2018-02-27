@@ -10,7 +10,7 @@ public class DocumentEvaluator {
     private final Document document;
     private String url;
 
-    public DocumentEvaluator(Document document, String url){
+    public DocumentEvaluator(Document document, String url) {
         this.document = document;
         this.url = url;
     }
@@ -37,5 +37,9 @@ public class DocumentEvaluator {
 
     public String getUrl() {
         return url;
+    }
+
+    public int integer(String xPath) {
+        return Integer.parseInt(this.string(xPath));
     }
 }

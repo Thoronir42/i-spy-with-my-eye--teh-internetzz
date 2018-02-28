@@ -17,11 +17,11 @@ public class CzechStemmerAgressive implements Stemmer{
      */
     public CzechStemmerAgressive(){} // constructor
 
-    public String stem(String input){
+    public String apply(String input){
         //
         input=input.toLowerCase();
         //reset string buffer
-        sb.delete(0,sb.length());
+        sb.setLength(0);
         sb.insert(0,input);
         // stemming...
         //removes case endings from nouns and adjectives
@@ -356,8 +356,8 @@ public class CzechStemmerAgressive implements Stemmer{
 
         if( buffer.substring( len- 2 ,len).equals("ci")||
                 buffer.substring( len- 2 ,len).equals("ce")||
-                buffer.substring( len- 2 ,len).equals("\u010di")||      //-či
-                buffer.substring( len- 2 ,len).equals("\u010de")){   //-če
+                buffer.substring( len- 2 ,len).equals("\u010di")||  //-či
+                buffer.substring( len- 2 ,len).equals("\u010de")){  //-č
 
             buffer.replace(len- 2 ,len, "k");
             return;

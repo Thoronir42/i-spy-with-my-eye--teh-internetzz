@@ -4,8 +4,8 @@
  */
 package cz.zcu.kiv.nlp.ir.preprocessing;
 
-import java.text.Normalizer;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -13,13 +13,21 @@ import java.util.regex.Pattern;
  * @author Michal Konkol
  */
 public class AdvancedTokenizer implements Tokenizer {
-    // datum | cislo |  | html | tecky a sracky
-    public static final String defaultRegex = "(\\d{1,2}\\.\\d{1,2}\\.(\\d{2,4})? \\d+[.,](\\d+)?)|([\\p{L}\\d]+)|(<.*?>)|([\\p{Punct}])";
+    private final String regex;
 
-    public static String[] tokenize(String text, String regex) {
+    public AdvancedTokenizer() {
+        this(createRegex());
+    }
+
+    public AdvancedTokenizer(String regex) {
+        this.regex = regex;
+    }
+
+    @Override
+    public String[] tokenize(String text) {
         Pattern pattern = Pattern.compile(regex);
 
-        ArrayList<String> words = new ArrayList<String>();
+        ArrayList<String> words = new ArrayList<>();
 
         Matcher matcher = pattern.matcher(text);
         while (matcher.find()) {
@@ -35,12 +43,23 @@ public class AdvancedTokenizer implements Tokenizer {
         return ws;
     }
 
-    public static String removeAccents(String text) {
-        return text == null ? null : Normalizer.normalize(text, Normalizer.Form.NFD).replaceAll("\\p{InCombiningDiacriticalMarks}+", "");
+
+    private static String createRegex() {
+        List<String> parts = new ArrayList<>();
+
+        parts.add("((\\w+\\*+\\w+)|(\\w+\\*+)|(\\*+\\w+))"); // * cenzura
+        parts.add("(\\d{1,2}\\.\\d{1,2}\\.(\\d{2,4})?)"); // datum
+        parts.add("\\d+[.,](\\d+)"); // cislo
+        parts.add("(</?.*?>)"); // html
+        parts.add("([\\p{Punct}])"); // tecky a sracky
+        parts.add("(https?|ftp):\\/\\/([\\w\\d-]+\\.?)+((\\/)([\\w\\d-]+))*\\/?(\\?[\\w\\d-]+(=[\\w\\d-]+)?)"); // tecky a sracky
+        parts.add("([\\p{L}\\d]+)"); // slova
+
+        return String.join("|", parts);
     }
 
     @Override
-    public String[] tokenize(String text) {
-        return tokenize(text, defaultRegex);
+    public String toString() {
+        return "AdvancedTokenizer{regex='" + regex + "\'}";
     }
 }

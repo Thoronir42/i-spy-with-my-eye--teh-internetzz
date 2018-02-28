@@ -271,3 +271,6 @@ zač
 zatímco
 ze
 že
+tím
+tímto
+přičemž

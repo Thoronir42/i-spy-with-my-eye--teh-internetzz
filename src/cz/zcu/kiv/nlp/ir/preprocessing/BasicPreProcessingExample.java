@@ -6,9 +6,7 @@ import java.util.*;
 /**
  * Created by Tigi on 29.2.2016.
  */
-public class BasicPreprocessingExample {
-
-    static Stemmer stemmer = new CzechStemmerAgressive();
+public class BasicPreProcessingExample {
 
     public static void main(String[] args) {
         String text =
@@ -32,71 +30,53 @@ public class BasicPreprocessingExample {
                         "<li> jméno, příjmení, orion login, studentské číslo.</li>" +
                         "Tablet PC - Intel Atom Quad Core Z3735F, kapacitní multidotykový IPS 10.1\" LED 1280x800, Intel HD Graphics, RAM 2GB, 64GB eMMC, WiFi, Bluetooth 4.0, webkamera 2 Mpx + 5 Mpx, 2článková baterie, Windows 10 Home 32bit + MS Office Mobile";
 
-        final String[] tokenize = split(text, " ");
+        final String[] tokenize = text.split(" ");
         Arrays.sort(tokenize);
         System.out.println(Arrays.toString(tokenize));
 
         System.out.println();
 
-        final ArrayList<String> documents = new ArrayList<String>();
-        for (String document : split(text, "\n")) {
-            documents.add(document);
-        }
+        final ArrayList<String> documents = new ArrayList<>();
+        Collections.addAll(documents, text.split("\n"));
 
 //        wordsStatistics(documents, " ", false, null, false, false);
 
-        System.out.println();
-        System.out.println("-------------------------------");
-        System.out.println();
+        wordsStatistics(documents, new AdvancedTokenizer("\\S+"), null, false, false, false);
 
-        wordsStatistics(documents, "\\S+", false, null, false, false, false);
+        wordsStatistics(documents, new AdvancedTokenizer("\\S+"), null, false, false, true);
 
-        System.out.println();
-        System.out.println("------------LOWERCASE---------------");
-        System.out.println();
-        wordsStatistics(documents, "\\S+", false, null, false, false, true);
+        Stemmer stemmer = new CzechStemmerLight();
+        wordsStatistics(documents, new AdvancedTokenizer("\\S+"), stemmer, false, false, true);
 
-        System.out.println();
-        System.out.println("----------STEM Light------------------");
-        System.out.println();
-        stemmer = new CzechStemmerLight();
-        wordsStatistics(documents, "\\S+", true, null, false, false, true);
-
-        System.out.println();
-        System.out.println("----------STEM Agressive------------------");
-        System.out.println();
-
-        wordsStatistics(documents, "\\S+", true, null, false, false, true);
-
-        System.out.println();
-        System.out.println("-----------ACCENTS---------------");
-        System.out.println();
-
-        wordsStatistics(documents, "\\S+", true, null, false, true, true);
+        Stemmer agressive = new CzechStemmerAgressive();
+        wordsStatistics(documents, new AdvancedTokenizer("\\S+"), agressive, false, false, true);
 
 
-        System.out.println();
-        System.out.println("-----------REGEX---------------");
-        System.out.println();
-        wordsStatistics(documents, AdvancedTokenizer.defaultRegex, true, null, false, true, true);
+        wordsStatistics(documents, new AdvancedTokenizer("\\S+"), agressive, false, true, true);
+
+
+        wordsStatistics(documents, new AdvancedTokenizer(), agressive, false, true, true);
 
         System.out.println();
-        System.out.println(stemmer.stem("vize"));
-        System.out.println(stemmer.stem("vizionar"));
-        System.out.println(stemmer.stem("vizionář"));
-        System.out.println(stemmer.stem("vidím"));
-        System.out.println(stemmer.stem("vidíš"));
-        System.out.println(stemmer.stem("vidim"));
-        System.out.println(stemmer.stem("vidis"));
+        System.out.println(agressive.apply("vize"));
+        System.out.println(agressive.apply("vizionar"));
+        System.out.println(agressive.apply("vizionář"));
+        System.out.println(agressive.apply("vidím"));
+        System.out.println(agressive.apply("vidíš"));
+        System.out.println(agressive.apply("vidim"));
+        System.out.println(agressive.apply("vidis"));
 
-        System.out.println(stemmer.stem("nejneobhospodařovávatelnějšími"));
-        stemmer = new CzechStemmerLight();
-        System.out.println(stemmer.stem("nejneobhospodařovávatelnějšími"));
+        System.out.println(agressive.apply("nejneobhospodařovávatelnějšími"));
+        System.out.println(stemmer.apply("nejneobhospodařovávatelnějšími"));
     }
 
 
+    public static void wordsStatistics(List<String> lines, Tokenizer tokenizer, Stemmer stemmer, boolean removeAccentsBeforeStemming, boolean removeAccentsAfterStemming, boolean toLowercase) {
+        System.out.println("-------------------------------");
+        System.out.format(" Tokenizer: %s\n Stemmer: %s\n", tokenizer.toString(), stemmer == null ? "none" : stemmer.getClass().getSimpleName());
+        System.out.format(" Accents -before: %s, -after %s\tlowercase: %s\n", removeAccentsBeforeStemming, removeAccentsAfterStemming, toLowercase);
+        System.out.println("-------------------------------");
 
-    public static void wordsStatistics(List<String> lines, String tokenizeRegex, boolean stemm, Set<String> stopwords, boolean removeAccentsBeforeStemming, boolean removeAccentsAfterStemming, boolean toLowercase) {
         Set<String> words = new HashSet<>();
         long numberOfWords = 0;
         long numberOfChars = 0;
@@ -108,15 +88,15 @@ public class BasicPreprocessingExample {
                 line = line.toLowerCase();
             }
             if (removeAccentsBeforeStemming) {
-                line = AdvancedTokenizer.removeAccents(line);
+                line = AccentStripper.removeAdvanced(line);
             }
-            for (String token : tokenize(line, tokenizeRegex)) {
+            for (String token : tokenizer.tokenize(line)) {
 //            for (String token : BasicTokenizer.tokenize(line, BasicTokenizer.defaultRegex)) {
-                if (stemm) {
-                    token = stemmer.stem(token);
+                if (stemmer != null) {
+                    token = stemmer.apply(token);
                 }
                 if (removeAccentsAfterStemming) {
-                    token = AdvancedTokenizer.removeAccents(token);
+                    token = AccentStripper.removeAdvanced(token);
                 }
                 numberOfWords++;
                 numberOfChars += token.length();
@@ -133,13 +113,5 @@ public class BasicPreprocessingExample {
         Object[] a = words.toArray();
         Arrays.sort(a);
         System.out.println(Arrays.toString(a));
-    }
-
-    private static String[] split(String line, String regex) {
-        return line.split(regex);
-    }
-
-    private static String[] tokenize(String line, String regex) {
-        return AdvancedTokenizer.tokenize(line, regex);
     }
 }

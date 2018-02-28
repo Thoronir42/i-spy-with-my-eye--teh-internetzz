@@ -9,5 +9,8 @@ public interface PreProcessing {
     void index(String document);
     String getProcessedForm(String text);
 
+    int getWordCount(String word);
+    boolean contains(String word);
+
     Map<String, Integer> getWordFrequencies();
 }

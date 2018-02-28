@@ -5,6 +5,7 @@ import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.Map;
+import java.util.Set;
 
 import static org.junit.Assert.*;
 
@@ -17,30 +18,33 @@ public class PreprocessingTest {
 
     private static final Logger log = Logger.getLogger(PreprocessingTest.class);
 
+    private static Set<String> stopWords = StopwordsLoader.load("cz.txt");
+
     private static PreProcessing createNewInstance() {
-//        preprocessing = new BasicPreprocessing(
+//        preprocessing = new BasicPreProcessing(
 //                new CzechStemmerLight(), new BasicTokenizer(" "), null, false, true, true
 //        );
 
-//        preprocessing = new BasicPreprocessing(
+//        preprocessing = new BasicPreProcessing(
 //                new CzechStemmerLight(), new BasicTokenizer("\\s+"), null, false, true, true
 //        );
 
-        return new BasicPreprocessing(new CzechStemmerAgressive(), new AdvancedTokenizer(), null)
-                .setRemoveAccentsBeforeStemming(true)
-                .setRemoveAccentsAfterStemming(false)
-                .setToLowercase(true);
+        return new BasicPreProcessing(new AdvancedTokenizer(), stopWords)
+                .addDocumentOperation(String::toLowerCase)
+                .addDocumentOperation(new AccentStripper(AccentStripper.Mode.Advanced))
+                .addTokenOperation(new CzechStemmerAgressive());
     }
 
     @Test
     public void testContainsKey() {
         PreProcessing preprocessing = createNewInstance();
         String text = "Ćauík";
+        preprocessing.index(text);
         final Map<String, Integer> wordFrequencies = preprocessing.getWordFrequencies();
         printWordFrequencies(wordFrequencies);
 
         log.info(Arrays.toString(wordFrequencies.keySet().toArray()));
-        assertTrue(wordFrequencies.containsKey("cau"));
+        assertTrue(preprocessing.contains("cau"));
     }
 
     private void printWordFrequencies(Map<String, Integer> wordFrequencies) {
@@ -52,9 +56,10 @@ public class PreprocessingTest {
     }
 
     private void printSortedDictionary(Map<String, Integer> wordFrequencies) {
-        Object[] a = wordFrequencies.keySet().toArray();
-        Arrays.sort(a);
-        System.out.println(Arrays.toString(a));
+        String[] entries = wordFrequencies.entrySet().stream()
+                .map(Map.Entry::getKey).sorted()
+                .toArray(String[]::new);
+        log.info(Arrays.toString(entries));
     }
 
     @Test
@@ -84,11 +89,12 @@ public class PreprocessingTest {
         preprocessing.index("(pěstí).");
         preprocessing.index("1280x800");
         preprocessing.index("pr*sata");
+
         final Map<String, Integer> wordFrequencies = preprocessing.getWordFrequencies();
         printWordFrequencies(wordFrequencies);
-        assertTrue(wordFrequencies.containsKey(preprocessing.getProcessedForm("pěstí")));
-        assertTrue(wordFrequencies.containsKey(preprocessing.getProcessedForm("1280x800")));
-        assertTrue(wordFrequencies.containsKey(preprocessing.getProcessedForm("pr*sata")));
+        assertTrue(preprocessing.contains(preprocessing.getProcessedForm("pěstí")));
+        assertTrue(preprocessing.contains(preprocessing.getProcessedForm("1280x800")));
+        assertTrue(preprocessing.contains(preprocessing.getProcessedForm("pr*sata")));
     }
 
     @Test
@@ -103,11 +109,16 @@ public class PreprocessingTest {
         preprocessing.index("Ačkoli se celý rok učil, známky na vysvědčení má podprůměrné.");
 
         Map<String, Integer> wordFrequencies = preprocessing.getWordFrequencies();
-        printWordFrequencies(wordFrequencies);
-        assertFalse(wordFrequencies.containsKey(preprocessing.getProcessedForm("tímto")));
-        assertFalse(wordFrequencies.containsKey(preprocessing.getProcessedForm("ačkoli")));
-        assertFalse(wordFrequencies.containsKey(preprocessing.getProcessedForm("jestliže")));
-        assertFalse(wordFrequencies.containsKey(preprocessing.getProcessedForm("přičemž")));
+//        printWordFrequencies(wordFrequencies);
+
+        System.out.println(Arrays.toString(stopWords.toArray()));
+
+        String[] unexpectedWords = {"tímto", "ačkoli", "jestliže", "přičemž"};
+
+        for (String word : unexpectedWords) {
+            String processedForm = preprocessing.getProcessedForm(word);
+            assertFalse("Should not contain " + word, preprocessing.contains(processedForm));
+        }
     }
 
     @Test
@@ -119,8 +130,8 @@ public class PreprocessingTest {
         preprocessing.index(date);
         final Map<String, Integer> wordFrequencies = preprocessing.getWordFrequencies();
         printWordFrequencies(wordFrequencies);
-        assertTrue(wordFrequencies.containsKey(preprocessing.getProcessedForm("11.2.")));
-        assertTrue(wordFrequencies.containsKey(preprocessing.getProcessedForm("15.5.2010")));
+        assertTrue(preprocessing.contains(preprocessing.getProcessedForm("11.2.")));
+        assertTrue(preprocessing.contains(preprocessing.getProcessedForm("15.5.2010")));
     }
 
     @Test
@@ -135,7 +146,7 @@ public class PreprocessingTest {
         final Map<String, Integer> wordFrequencies = preprocessing.getWordFrequencies();
         printWordFrequencies(wordFrequencies);
         text = preprocessing.getProcessedForm(text);
-        assertEquals(5, wordFrequencies.get(text).intValue());
+        assertEquals(5, preprocessing.getWordCount(text));
     }
 
     @Test
@@ -147,7 +158,7 @@ public class PreprocessingTest {
         preprocessing.index("BOMBY");
         final Map<String, Integer> wordFrequencies = preprocessing.getWordFrequencies();
         printWordFrequencies(wordFrequencies);
-        assertEquals(4, wordFrequencies.get(preprocessing.getProcessedForm("bomb")).intValue());
+        assertEquals(4, preprocessing.getWordCount(preprocessing.getProcessedForm("bomb")));
     }
 
 
@@ -162,9 +173,9 @@ public class PreprocessingTest {
         preprocessing.index("smějou");
         final Map<String, Integer> wordFrequencies = preprocessing.getWordFrequencies();
         printWordFrequencies(wordFrequencies);
-        assertEquals(4, wordFrequencies.get(preprocessing.getProcessedForm("smějí")).intValue());
-        assertEquals(1, wordFrequencies.get(preprocessing.getProcessedForm("směješ")).intValue());
-        assertEquals(1, wordFrequencies.get(preprocessing.getProcessedForm("smějeme")).intValue());
+        assertEquals(4, preprocessing.getWordCount(preprocessing.getProcessedForm("smějí")));
+        assertEquals(1, preprocessing.getWordCount(preprocessing.getProcessedForm("směješ")));
+        assertEquals(1, preprocessing.getWordCount(preprocessing.getProcessedForm("smějeme")));
     }
 
     @Test
@@ -176,7 +187,7 @@ public class PreprocessingTest {
         preprocessing.index("bomby");
         final Map<String, Integer> wordFrequencies = preprocessing.getWordFrequencies();
         printWordFrequencies(wordFrequencies);
-        assertEquals(4, wordFrequencies.get(preprocessing.getProcessedForm("bomb")).intValue());
+        assertEquals(4, preprocessing.getWordCount(preprocessing.getProcessedForm("bomb")));
     }
 
     @Test
@@ -209,10 +220,10 @@ public class PreprocessingTest {
 
         final Map<String, Integer> wordFrequencies = preprocessing.getWordFrequencies();
         printWordFrequencies(wordFrequencies);
-        assertEquals(2, wordFrequencies.get(preprocessing.getProcessedForm("bomb")).intValue());
-        assertEquals(2, wordFrequencies.get(preprocessing.getProcessedForm("tržby")).intValue());
-        assertEquals(1, wordFrequencies.get(preprocessing.getProcessedForm("z3735f")).intValue());
-        assertEquals(4, wordFrequencies.get("</li>").intValue());
+        assertEquals(2, preprocessing.getWordCount(preprocessing.getProcessedForm("bomb")));
+        assertEquals(2, preprocessing.getWordCount(preprocessing.getProcessedForm("tržby")));
+        assertEquals(1, preprocessing.getWordCount(preprocessing.getProcessedForm("z3735f")));
+        assertEquals(4, preprocessing.getWordCount("</li>"));
     }
 
 

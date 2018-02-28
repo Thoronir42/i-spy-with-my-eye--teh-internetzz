@@ -21,7 +21,7 @@ public class CzechStemmerLight implements Stemmer{
      */
     public CzechStemmerLight(){} // constructor
 
-    public String stem(String input){
+    public String apply(String input){
 
         //
         input=input.toLowerCase();

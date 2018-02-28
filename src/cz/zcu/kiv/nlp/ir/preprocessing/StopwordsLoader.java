@@ -4,15 +4,19 @@ import cz.zcu.kiv.nlp.tools.Utils;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.Set;
 
 public class StopwordsLoader {
-    public static Set<String> load(String filename) {
+    public static Collection<String> load(String filename) {
         try {
-            return new HashSet<>(Utils.readLines(new File("./data/stopwords/" + filename)));
+            return Utils.readLines(new File("./data/stopwords/" + filename));
+//            return new HashSet<>(Utils.readLines(new File("./data/stopwords/" + filename)));
         } catch (IOException e) {
-            return null;
+            e.printStackTrace();
+            return new LinkedList<>();
         }
     }
 }

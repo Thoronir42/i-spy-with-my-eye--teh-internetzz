@@ -35,23 +35,33 @@ public class BasicPreProcessing implements PreProcessing {
         return this;
     }
 
+    public BasicPreProcessing applyDocumentOperationsOnStopWords() {
+        this.stopwords = stopwords.stream().map(word -> {
+            for (PreProcessingOperation<String> documentOperation : documentOperations) {
+                word = documentOperation.apply(word);
+            }
+            return word;
+        }).collect(Collectors.toList());
+        return this;
+    }
+
     @Override
     public void index(String document) {
-        for(PreProcessingOperation<String> operation : this.documentOperations) {
+        for (PreProcessingOperation<String> operation : this.documentOperations) {
             document = operation.apply(document);
         }
 
         for (String token : tokenizer.tokenize(document)) {
-            String original = token;
-            if(stopwords.contains(token)) {
-                System.out.format("~ %-14s\n", token);
+//            String original = token;
+            if (stopwords.contains(token)) {
+//                System.out.format("~ %-14s @%d\n", token, ((List<String>) stopwords).indexOf(token));
                 continue;
             }
-            for(PreProcessingOperation<String> operation : this.tokenOperations) {
+            for (PreProcessingOperation<String> operation : this.tokenOperations) {
                 token = operation.apply(token);
             }
 
-            System.out.format("+ %-14s %s \n", token, original);
+//            System.out.format("+ %-14s %s \n", token, original);
 
             wordFrequencies.put(token, wordFrequencies.getOrDefault(token, 0) + 1);
         }
@@ -87,7 +97,7 @@ public class BasicPreProcessing implements PreProcessing {
     public String toString() {
         return "BasicPreProcessing{" +
                 "\n  documentOperations=" + documentOperations.stream().map(PreProcessingOperation::toString).collect(Collectors.joining(", ")) +
-                "\n  tokenOperations=" + tokenOperations.stream().map(PreProcessingOperation::toString).collect(Collectors.joining(", "))+
+                "\n  tokenOperations=" + tokenOperations.stream().map(PreProcessingOperation::toString).collect(Collectors.joining(", ")) +
                 "\n}";
     }
 }

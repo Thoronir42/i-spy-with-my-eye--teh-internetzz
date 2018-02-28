@@ -4,8 +4,10 @@ import org.apache.log4j.Logger;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.*;
 
@@ -18,7 +20,7 @@ public class PreprocessingTest {
 
     private static final Logger log = Logger.getLogger(PreprocessingTest.class);
 
-    private static Set<String> stopWords = StopwordsLoader.load("cz.txt");
+    private static Collection<String> stopWords = StopwordsLoader.load("cz.txt");
 
     private static PreProcessing createNewInstance() {
 //        preprocessing = new BasicPreProcessing(
@@ -32,7 +34,8 @@ public class PreprocessingTest {
         return new BasicPreProcessing(new AdvancedTokenizer(), stopWords)
                 .addDocumentOperation(String::toLowerCase)
                 .addDocumentOperation(new AccentStripper(AccentStripper.Mode.Advanced))
-                .addTokenOperation(new CzechStemmerAgressive());
+                .addTokenOperation(new CzechStemmerAgressive())
+                .applyDocumentOperationsOnStopWords();
     }
 
     @Test
@@ -117,7 +120,7 @@ public class PreprocessingTest {
 
         for (String word : unexpectedWords) {
             String processedForm = preprocessing.getProcessedForm(word);
-            assertFalse("Should not contain " + word, preprocessing.contains(processedForm));
+            assertFalse("Should not contain '" + word + "'", preprocessing.contains(processedForm));
         }
     }
 
@@ -137,12 +140,12 @@ public class PreprocessingTest {
     @Test
     public void testDiacritics() {
         PreProcessing preprocessing = createNewInstance();
-        String text = "ćau";
+        String text = "tříšť";
         preprocessing.index(text);
-        preprocessing.index("cau");
-        preprocessing.index("caú");
-        preprocessing.index("cáu");
-        preprocessing.index("čau");
+        preprocessing.index("trist");
+        preprocessing.index("tŕíśt");
+        preprocessing.index("třišť");
+        preprocessing.index("ťríšť");
         final Map<String, Integer> wordFrequencies = preprocessing.getWordFrequencies();
         printWordFrequencies(wordFrequencies);
         text = preprocessing.getProcessedForm(text);

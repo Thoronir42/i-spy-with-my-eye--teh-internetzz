@@ -1,4 +1,4 @@
-package cz.zcu.kiv.nlp.cdNemovitosti;
+package cz.zcu.sdutends.kiwi.cdNemovitosti;
 
 import org.apache.log4j.Logger;
 import us.codecraft.xsoup.XPathEvaluator;

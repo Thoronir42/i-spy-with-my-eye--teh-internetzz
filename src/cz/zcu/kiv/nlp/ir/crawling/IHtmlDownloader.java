@@ -10,7 +10,7 @@ import java.util.function.Function;
  * This class is a demonstration of how crawler can be used to download a website
  * Created by Tigi on 31.10.2014.
  */
-public interface IHtmlDownloader {
+public interface IHtmlDownloader extends AutoCloseable{
 
     /**
      * Get failed links.

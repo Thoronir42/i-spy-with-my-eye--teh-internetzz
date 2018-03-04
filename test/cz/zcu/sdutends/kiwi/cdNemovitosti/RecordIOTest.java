@@ -1,5 +1,6 @@
-package cz.zcu.kiv.nlp.cdNemovitosti;
+package cz.zcu.sdutends.kiwi.cdNemovitosti;
 
+import cz.zcu.sdutends.kiwi.RecordIO;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -19,7 +20,7 @@ public class RecordIOTest {
 
         io.save("./test/recordTest.txt", estates);
 
-        Collection loaded = io.load("./test/recordTest.txt");
+        Collection<Estate> loaded = io.loadCollection("./test/recordTest.txt", Estate.class);
 
         Assert.assertEquals("Loaded estates count ",2, loaded.size());
     }

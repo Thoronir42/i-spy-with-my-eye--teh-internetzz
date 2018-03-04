@@ -95,4 +95,18 @@ public class Utils {
 			throw e;
 		}
 	}
+
+	public static boolean ensureDirectoryExists(String directory) {
+		File outputDir = new File(directory);
+		if (!outputDir.exists()) {
+			boolean mkdirs = outputDir.mkdirs();
+			if (!mkdirs) {
+				log.error("Output directory can't be created! Please either create it or change the STORAGE parameter.\nOutput directory: " + outputDir);
+				return false;
+			}
+			log.info("Output directory created: " + outputDir);
+		}
+
+		return true;
+	}
 }

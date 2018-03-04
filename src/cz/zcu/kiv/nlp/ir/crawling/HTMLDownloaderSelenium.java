@@ -37,7 +37,11 @@ public class HTMLDownloaderSelenium extends AbstractHTMLDownloader {
     @Override
     protected Document getDocument(String url) {
         driver.get(url);
-
+        try {
+            Thread.sleep(200);
+        } catch (InterruptedException e) {
+            log.warn("Sleep failed: " + e.toString());
+        }
         String dom = driver.getPageSource();
         if (dom == null) {
             log.info("Couldn't fetch the content of the page.");

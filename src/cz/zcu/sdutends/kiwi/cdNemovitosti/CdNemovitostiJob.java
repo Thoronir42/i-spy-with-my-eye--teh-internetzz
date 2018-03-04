@@ -1,44 +1,48 @@
-package cz.zcu.kiv.nlp.cdNemovitosti;
+package cz.zcu.sdutends.kiwi.cdNemovitosti;
 
 import cz.zcu.kiv.nlp.ir.crawling.HtmlDownloaderFactory;
 import cz.zcu.kiv.nlp.ir.crawling.IHtmlDownloader;
 import cz.zcu.kiv.nlp.tools.Utils;
+import cz.zcu.sdutends.kiwi.IrJob;
+import cz.zcu.sdutends.kiwi.RecordIO;
+import cz.zcu.sdutends.kiwi.ir.GenericCrawler;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 import java.io.File;
 import java.util.Collection;
-import java.util.LinkedList;
 import java.util.Set;
-import java.util.function.Consumer;
-import java.util.function.Function;
 
 /**
  * CdNemovitostiMain class acts as a controller. You should only adapt this file to serve your needs.
  * Created by Tigi on 31.10.2014.
  */
-public class CdNemovitostiMain {
+public class CdNemovitostiMain extends IrJob {
     private static final Logger log = Logger.getLogger(CdNemovitostiMain.class);
 
-    /**
-     * Main method
-     */
-    public static void main(String[] args) {
+    private final MainSettings settings;
+
+    public CdNemovitostiMain(String ...args) {
+        this.settings = new MainSettings().process(args);
+    }
+
+    @Override
+    public void run() {
         //Initialization
         BasicConfigurator.configure();
         Logger.getRootLogger().setLevel(Level.INFO);
 
-        MainSettings settings = new MainSettings().process(args);
 
-        if (!ensureOutputAvailable(settings.getStorage())) {
+
+        if (!Utils.ensureDirectoryExists(settings.getStorage())) {
             System.exit(1);
         }
 
         IHtmlDownloader downloader = new HtmlDownloaderFactory().create(HtmlDownloaderFactory.Type.Selenium);
 
-        CdNemovitostiCrawler crawler = new CdNemovitostiCrawler(downloader)
-                .setPolitenessInterval(1200); // Be polite and don't send requests too often.
+        CdNemovitostiCrawler crawler = new CdNemovitostiCrawler(downloader);
+        crawler.setPolitenessInterval(1200); // Be polite and don't send requests too often.
 
         RecordIO io = new RecordIO();
 
@@ -104,44 +108,5 @@ public class CdNemovitostiMain {
 //            log.info(key + ": " + map.size());
 //        }
 
-    }
-
-    private static boolean ensureOutputAvailable(String directory) {
-        File outputDir = new File(directory);
-        if (!outputDir.exists()) {
-            boolean mkdirs = outputDir.mkdirs();
-            if (!mkdirs) {
-                log.error("Output directory can't be created! Please either create it or change the STORAGE parameter.\nOutput directory: " + outputDir);
-                return false;
-            }
-            log.info("Output directory created: " + outputDir);
-        }
-
-        return true;
-    }
-
-    private static void runProgress(Collection<String> urls, Consumer<String> urlAction) {
-        int count = 0;
-        for (String url : urls) {
-            urlAction.accept(url);
-
-            if (++count % 100 == 0) {
-                log.info(count + " / " + urls.size() + " = " + count / (0.0 + urls.size()) + "% done.");
-            }
-        }
-    }
-
-    private static <T> Collection<T> runProgress(Collection<String> urls, Function<String, T> urlAction) {
-        Collection<T> items = new LinkedList<>();
-        int count = 0;
-        for (String url : urls) {
-            items.add(urlAction.apply(url));
-
-            if (++count % 100 == 0) {
-                log.info(String.format("%d / %d = %5.2f %% done.", count, urls.size(), 100.0 * count / urls.size()));
-            }
-        }
-
-        return items;
     }
 }

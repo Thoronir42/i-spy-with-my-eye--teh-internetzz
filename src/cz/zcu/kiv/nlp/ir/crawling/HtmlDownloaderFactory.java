@@ -15,7 +15,7 @@ public class HtmlDownloaderFactory {
     public IHtmlDownloader create(Type type) {
         switch (type) {
             case Selenium:
-                return new HTMLDownloaderSelenium("./cv02_CrawlerIR/chromedriver.exe");
+                return new HTMLDownloaderSelenium("./chromedriver.exe");
 
             default:
             case Direct:

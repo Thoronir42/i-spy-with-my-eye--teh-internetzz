@@ -1,4 +1,4 @@
-package cz.zcu.kiv.nlp.cdNemovitosti;
+package cz.zcu.sdutends.kiwi.cdNemovitosti;
 
 import cz.zcu.kiv.nlp.ir.crawling.DocumentEvaluator;
 import cz.zcu.kiv.nlp.ir.crawling.IHtmlDownloader;
@@ -10,24 +10,21 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 
-public class CdNemovitostiCrawler {
-    private static Logger log = Logger.getLogger(CdNemovitostiCrawler.class);
+public class ACrawler extends cz.zcu.sdutends.kiwi.ir.ACrawler {
+    private static Logger log = Logger.getLogger(ACrawler.class);
 
-    private static String SITE = "http://nemovitosti.ceskedrahy.cz";
     private static String SEARCH_SUFFIX = "/Results.aspx?fgroup=L";
 
-    protected int politenessInterval;
-
-    protected final IHtmlDownloader downloader;
+    // fixme: public access only for GenericCrawler
+    public final IHtmlDownloader downloader;
 
     private Function<DocumentEvaluator, Estate> evalFunction = getDocumentEvaluatorEstateFunction();
 
 
 
-    CdNemovitostiCrawler(IHtmlDownloader downloader) {
-
+    ACrawler(IHtmlDownloader downloader) {
+        super("http://nemovitosti.ceskedrahy.cz");
         this.downloader = downloader;
-        this.politenessInterval = 100;
     }
 
     public Collection<String> loadEstateLinks(String path) {
@@ -44,7 +41,7 @@ public class CdNemovitostiCrawler {
         String estateLinkXPath = "//div[contains(@class,'viewerBox')]/div[contains(@class, 'itm')]//a/@href";
 
         AtomicInteger max = new AtomicInteger(10); // todo: optimize initial page count?
-        String listingUrl = SITE + SEARCH_SUFFIX + "&page=" + 0;
+        String listingUrl = this.siteRoot + SEARCH_SUFFIX + "&page=" + 0;
 
         Collection<String> links =  downloader.processUrl(listingUrl, (de) -> {
             max.set(de.integer(""));
@@ -52,7 +49,7 @@ public class CdNemovitostiCrawler {
         });
 
         for (int i = 1; i < max.get(); i++) {
-            listingUrl = SITE + SEARCH_SUFFIX + "&page=" + i;
+            listingUrl = this.siteRoot + SEARCH_SUFFIX + "&page=" + i;
 
             List<String> items = downloader.processUrl(listingUrl, estateLinkXPath);
             links.addAll(items);
@@ -66,22 +63,6 @@ public class CdNemovitostiCrawler {
         return downloader.processUrl(normalizeUrl(url), evalFunction);
     }
 
-    public void bePolite() {
-        try {
-            Thread.sleep(politenessInterval);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public CdNemovitostiCrawler setPolitenessInterval(int milliseconds) {
-        this.politenessInterval = milliseconds;
-        return this;
-    }
-
-    public String normalizeUrl(String url) {
-        return url.contains(SITE) ? url : SITE + url;
-    }
 
     public void close() {
         log.info("Closing crawler");

@@ -5,6 +5,7 @@ import cz.zcu.kiv.nlp.ir.crawling.IHtmlDownloader;
 import cz.zcu.kiv.nlp.tools.Utils;
 import cz.zcu.sdutends.kiwi.IrJob;
 import cz.zcu.sdutends.kiwi.IrJobSettings;
+import cz.zcu.sdutends.kiwi.utils.ProgressRunnable;
 
 import java.io.File;
 import java.util.Collection;
@@ -14,24 +15,29 @@ public class TedJob extends IrJob {
 
     private final TedSettings settings;
 
-    public TedJob(String ...args) {
+    public TedJob(String... args) {
         this.settings = new TedSettings(args);
 
-        this.settings.setStorage("./storage/ted-talks");
+        this.settings.setStorage("./storage/ted");
 
         settings.setLinksSource(IrJobSettings.DataSource.Load);
         settings.setLinksDataFile("2018-03-04_20_32_935_links_size_2707.txt");
 
-        settings.setSkip(245).setLimit(55);
+        settings.setSkip(300).setLimit(10);
     }
 
     @Override
     public void run() {
-        if (!Utils.ensureDirectoryExists(settings.getStorage())) {
-            System.exit(1);
+        boolean allDirsExist = this.ensureDirectoriesExist(
+                this.settings.getStorage(),
+                this.settings.getStorage() + "/talks"
+        );
+        if(!allDirsExist) {
+            return;
         }
 
-        try (IHtmlDownloader downloader = new HtmlDownloaderFactory().create(HtmlDownloaderFactory.Type.Selenium)){
+
+        try (IHtmlDownloader downloader = new HtmlDownloaderFactory().create(HtmlDownloaderFactory.Type.Selenium)) {
             TedCrawler crawler = new TedCrawler(downloader);
             crawler.setPolitenessInterval(settings.getPoliteInterval());
 
@@ -40,11 +46,12 @@ public class TedJob extends IrJob {
                     .skip(settings.getSkip()).limit(settings.getLimit())
                     .collect(Collectors.toList());
 
-            runProgress(urls, (url) ->{
-                Talk talk = crawler.retrieveTalk(url);
-                String filename = "talk_" + talk.getUrl() + ".txt";
-                io.save(settings.getStorageFile(filename, true), talk);
-            });
+            new ProgressRunnable<>(urls)
+                    .run((url) -> {
+                        Talk talk = crawler.retrieveTalk(url);
+                        String filename = Utils.time() + "_talk_" + talk.getUrl() + ".txt";
+                        io.save(settings.getStorageFile("talks", filename), talk);
+                    });
 
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -58,7 +65,7 @@ public class TedJob extends IrJob {
                 return loadUrls(settings.getStorageFile(settings.getLinksDataFile()));
             case Fetch:
                 Collection<String> urlsSet = crawler.fetchTalkLinks();
-                Utils.saveFile(new File(settings.getStorageFile("links_size_" + urlsSet.size() + ".txt", true)),
+                Utils.saveFile(new File(settings.getStorageFile(Utils.time() + "_links_size_" + urlsSet.size() + ".txt")),
                         urlsSet);
                 return urlsSet;
             default:

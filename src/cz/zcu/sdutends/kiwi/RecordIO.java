@@ -20,7 +20,11 @@ public class RecordIO {
     }
 
     public <T> T loadItem(String path, Class<T> tClass) {
-        try (ObjectInputStream objectInputStream = new ObjectInputStream(new FileInputStream(path))) {
+        return loadItem(new File(path), tClass);
+    }
+
+    public <T> T loadItem(File file, Class<T> tClass) {
+        try (ObjectInputStream objectInputStream = new ObjectInputStream(new FileInputStream(file))) {
             final Object object = objectInputStream.readObject();
             if (!tClass.isInstance(object)) {
                 log.warn("Deserialization contained invalid type");

@@ -71,11 +71,11 @@ public class TedCrawler extends ACrawler {
             Talk talk = new Talk()
                     .setUrl(url);
 
-            talk.setTitle(de.string("//*[@id='content']//h1"))
-                    .setTalker(de.string("//*[@id='content']//*[contains(@class, 'f:.9 m-b:.4 m-t:.5 d:i-b')]"))
-                    .setDateRecorded(de.string("//div[@id='content']//div[@class='f:.9 p-x:3@md c:black t-a:l']/div[@class='m-b:2']/div/span[1]"));
+            talk.setTitle(de.string("//*[@id='content']//h1/allText()"))
+                    .setTalker(de.string("//*[@id='content']//*[contains(@class, 'f:.9 m-b:.4 m-t:.5 d:i-b')]/allText()"))
+                    .setDateRecorded(de.string("//div[@id='content']//div[@class='f:.9 p-x:3@md c:black t-a:l']/div[@class='m-b:2']/div/span[1]/allText()"));
 
-            talk.setIntroduction(de.string("//div[@id='content']//div[@class='Grid__cell w:3of4@md']/p[@class='l-h:n m-b:1']"));
+            talk.setIntroduction(de.string("//div[@id='content']//div[@class='Grid__cell w:3of4@md']/p[@class='l-h:n m-b:1']/allText()"));
 
             return talk;
         };

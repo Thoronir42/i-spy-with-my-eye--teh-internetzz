@@ -96,6 +96,11 @@ public class Utils {
 		}
 	}
 
+	public static String time() {
+		return Utils.SDF.format(System.currentTimeMillis());
+	}
+
+
 	public static boolean ensureDirectoryExists(String directory) {
 		File outputDir = new File(directory);
 		if (!outputDir.exists()) {

@@ -5,6 +5,7 @@ import cz.zcu.kiv.nlp.ir.crawling.IHtmlDownloader;
 import cz.zcu.kiv.nlp.tools.Utils;
 import cz.zcu.sdutends.kiwi.IrJob;
 import cz.zcu.sdutends.kiwi.ir.GenericCrawler;
+import cz.zcu.sdutends.kiwi.utils.ProgressRunnable;
 import org.apache.log4j.Logger;
 
 import java.io.File;
@@ -43,7 +44,7 @@ public class CdNemovitostiJob extends IrJob {
                 break;
             case Fetch:
                 urlsSet = crawler.fetchEstateLinks();
-                Utils.saveFile(new File(settings.getStorageFile("links_size_" + urlsSet.size() + ".txt", true)),
+                Utils.saveFile(new File(settings.getStorageFile(Utils.time() + "_links_size_" + urlsSet.size() + ".txt")),
                         urlsSet);
                 break;
             default:
@@ -63,17 +64,19 @@ public class CdNemovitostiJob extends IrJob {
                 gCrawler.addAction("tidyText", "//div[@class='property_info']/div[@class='box']/tidyText()");
 
                 for (String name : gCrawler.actionNames()) {
-                    String fileName = settings.getStorageFile(name + ".txt", true);
+                    String fileName = settings.getStorageFile(Utils.time() + "_" + name + ".txt");
                     gCrawler.openPrintStream(name, fileName);
                 }
-                runProgress(urlsSet, gCrawler::processResultUrl);
+                new ProgressRunnable<>(urlsSet)
+                        .run(gCrawler::processResultUrl);
                 //close print streams
                 gCrawler.closePrintStreams();
                 break;
 
             case Structured:
-                Collection<Estate> estate = runProgress(urlsSet, crawler::retrieveEstate);
-                io.save(settings.getStorageFile("serialized.txt", true), estate);
+                Collection<Estate> estate = new ProgressRunnable<>(urlsSet)
+                    .run(crawler::retrieveEstate);
+                io.save(settings.getStorageFile(Utils.time() + "_serialized.txt"), estate);
         }
 
         // Save links that failed in some way.
@@ -81,8 +84,10 @@ public class CdNemovitostiJob extends IrJob {
         // Try to eliminate all failed links - they consume your time while crawling data.
         Set<String> failedLinks = downloader.getFailedLinks();
         if (!failedLinks.isEmpty()) {
-            Utils.saveFile(new File(settings.getStorageFile("undownloaded_links__size_" + failedLinks.size() + ".txt", true)), failedLinks);
             log.info("Failed links: " + failedLinks.size());
+
+            String fileName = settings.getStorageFile(Utils.time() + "_undownloaded_links__size_" + failedLinks.size() + ".txt");
+            Utils.saveFile(new File(fileName), failedLinks);
             downloader.emptyFailedLinks();
         }
 

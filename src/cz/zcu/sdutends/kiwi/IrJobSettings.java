@@ -19,7 +19,7 @@ public class IrJobSettings {
 
     public IrJobSettings() {
         this.random = new Random();
-        this.setPoliteInterval(1200);
+        this.setPoliteInterval(800, 1200);
     }
 
 
@@ -38,16 +38,8 @@ public class IrJobSettings {
 
 
 
-    public String getStorageFile(String filename) {
-        return getStorageFile(filename, false);
-    }
-
-    public String getStorageFile(String filename, boolean prependCurrentTime) {
-        String result = getStorage() + "/";
-        if(prependCurrentTime) {
-            result += Utils.SDF.format(System.currentTimeMillis()) + "_";
-        }
-        return result + filename;
+    public String getStorageFile(String ...pathParts) {
+        return getStorage() + "/" + String.join("/", pathParts);
     }
 
 

@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Utils for I/O operations
@@ -17,6 +19,8 @@ public class Utils {
 	private static Logger log = Logger.getLogger(Utils.class);
 
 	public static final java.text.DateFormat SDF = new SimpleDateFormat("yyyy-MM-dd_HH_mm_SS");
+
+	private static Pattern htmlTagContentRegex = Pattern.compile("<[\\w\\s\"=:._\\-]+>(.+)<\\/\\w+>");
 
 	/**
 	 * Saves text to given file.
@@ -114,4 +118,27 @@ public class Utils {
 
 		return true;
 	}
+
+	public static String stripHtml(String string) {
+		return stripHtml(string, false);
+	}
+
+	public static String stripHtml(String string, boolean replaceNewlines) {
+		if(string == null) {
+			log.warn("StripHtml recieved null");
+			return "";
+		}
+		if(replaceNewlines) {
+			string = string
+					.replace("\n", "")
+					.replaceAll("&\\w+;", "");
+		}
+
+        Matcher matcher = htmlTagContentRegex.matcher(string);
+        if(!matcher.matches()) {
+            return string;
+        }
+
+        return matcher.group(1).trim();
+    }
 }

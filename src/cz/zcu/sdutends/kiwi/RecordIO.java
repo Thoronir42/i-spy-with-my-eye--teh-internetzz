@@ -11,9 +11,13 @@ public class RecordIO {
     private static final Logger log = Logger.getLogger(RecordIO.class);
 
     public void save(String path, Object obj) {
-        try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(path))) {
+        save(new File(path), obj);
+    }
+
+    public void save(File file, Object obj) {
+        try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(file))) {
             out.writeObject(obj);
-            log.info(String.format("Serialized data is saved in %s\n", path));
+            log.info(String.format("Serialized data is saved in %s\n", file.getCanonicalPath()));
         } catch (IOException i) {
             i.printStackTrace();
         }

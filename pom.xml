@@ -4,6 +4,10 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
+    <properties>
+        <apache.lucene.version>7.2.1</apache.lucene.version>
+    </properties>
+
     <groupId>groupId</groupId>
     <artifactId>KiwiCrawler</artifactId>
     <version>1.2-SNAPSHOT</version>
@@ -34,6 +38,27 @@
             <groupId>com.github.rholder</groupId>
             <artifactId>snowball-stemmer</artifactId>
             <version>1.3.0.581.1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.lucene</groupId>
+            <artifactId>lucene-core</artifactId>
+            <version>${apache.lucene.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.lucene</groupId>
+            <artifactId>lucene-analyzers-common</artifactId>
+            <version>${apache.lucene.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.lucene</groupId>
+            <artifactId>lucene-queryparser</artifactId>
+            <version>${apache.lucene.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.lucene</groupId>
+            <artifactId>lucene-demo</artifactId>
+            <version>${apache.lucene.version}</version>
         </dependency>
 
         <dependency>

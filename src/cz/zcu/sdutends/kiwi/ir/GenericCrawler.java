@@ -1,5 +1,6 @@
-package cz.zcu.sdutends.kiwi.cdNemovitosti;
+package cz.zcu.sdutends.kiwi.ir;
 
+import cz.zcu.sdutends.kiwi.cdNemovitosti.CdNemovitostiCrawler;
 import org.apache.log4j.Logger;
 import us.codecraft.xsoup.XPathEvaluator;
 import us.codecraft.xsoup.Xsoup;
@@ -11,16 +12,16 @@ import java.io.PrintStream;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class GenericCrawler {
+public final class GenericCrawler {
     private static Logger log = Logger.getLogger(GenericCrawler.class);
 
-    private final CdNemovitostiCrawler cdnCrawler;
+    private final ACrawler crawler;
     private Map<String, PrintStream> printStreamMap = new HashMap<>();
 
-    Map<String, XPathEvaluator> actions = new HashMap<>();
+    private Map<String, XPathEvaluator> actions = new HashMap<>();
 
-    public GenericCrawler(CdNemovitostiCrawler cdnCrawler) {
-        this.cdnCrawler = cdnCrawler;
+    public GenericCrawler(ACrawler crawler) {
+        this.crawler = crawler;
     }
 
     public void addAction(String action, String xPath) {
@@ -37,11 +38,11 @@ public class GenericCrawler {
             results.put(key, new HashMap<>());
         }
 
-        String link = cdnCrawler.normalizeUrl(url);
+        String link = crawler.normalizeUrl(url);
 
         //Download and extract data according to xpathMap
-        cdnCrawler.bePolite();
-        Map<String, List<String>> httpResult = cdnCrawler.downloader.processUrl(link, (de) -> actions.entrySet().stream()
+        crawler.bePolite();
+        Map<String, List<String>> httpResult = crawler.downloader.processUrl(link, (de) -> actions.entrySet().stream()
                 .collect(Collectors.toMap(entry -> entry.getKey(), entry -> entry.getValue().evaluate(de.getDocument()).list())));
 
         for (Map.Entry<String, Map<String, List<String>>> action : results.entrySet()) {

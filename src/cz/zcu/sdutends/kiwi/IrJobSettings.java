@@ -3,13 +3,24 @@ package cz.zcu.sdutends.kiwi;
 import cz.zcu.kiv.nlp.tools.Utils;
 
 import java.util.Arrays;
+import java.util.Random;
 
 public class IrJobSettings {
 
+    // todo: move random to polite interval provider?
+    private Random random;
+
     private String storage;
+
+    private int politeIntervalMin, politeIntervalMax;
 
     private DataSource linksSource = DataSource.Fetch;
     private String linksDataFile;
+
+    public IrJobSettings() {
+        this.random = new Random();
+        this.setPoliteInterval(1200);
+    }
 
 
     public final void process(String[] args) {
@@ -72,6 +83,22 @@ public class IrJobSettings {
     }
     public final void setStorage(String storage) {
         this.storage = storage;
+    }
+
+    public int getPoliteInterval() {
+        return politeIntervalMin + random.nextInt(politeIntervalMax - politeIntervalMin);
+    }
+
+    public IrJobSettings setPoliteInterval(int val) {
+        this.politeIntervalMin = this.politeIntervalMax = val;
+        return this;
+    }
+
+    public IrJobSettings setPoliteInterval(int min, int max) {
+        this.politeIntervalMin = min;
+        this.politeIntervalMax = max;
+
+        return this;
     }
 
 

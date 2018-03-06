@@ -1,4 +1,4 @@
-package cz.zcu.kiv.nlp.cdNemovitosti;
+package cz.zcu.sdutends.kiwi.cdNemovitosti;
 
 import java.io.Serializable;
 import java.util.ArrayList;

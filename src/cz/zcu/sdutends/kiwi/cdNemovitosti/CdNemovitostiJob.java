@@ -4,10 +4,7 @@ import cz.zcu.kiv.nlp.ir.crawling.HtmlDownloaderFactory;
 import cz.zcu.kiv.nlp.ir.crawling.IHtmlDownloader;
 import cz.zcu.kiv.nlp.tools.Utils;
 import cz.zcu.sdutends.kiwi.IrJob;
-import cz.zcu.sdutends.kiwi.RecordIO;
 import cz.zcu.sdutends.kiwi.ir.GenericCrawler;
-import org.apache.log4j.BasicConfigurator;
-import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 import java.io.File;
@@ -15,26 +12,21 @@ import java.util.Collection;
 import java.util.Set;
 
 /**
- * CdNemovitostiMain class acts as a controller. You should only adapt this file to serve your needs.
+ * CdNemovitostiJob class acts as a controller. You should only adapt this file to serve your needs.
  * Created by Tigi on 31.10.2014.
  */
-public class CdNemovitostiMain extends IrJob {
-    private static final Logger log = Logger.getLogger(CdNemovitostiMain.class);
+public class CdNemovitostiJob extends IrJob {
+    private static final Logger log = Logger.getLogger(CdNemovitostiJob.class);
 
-    private final MainSettings settings;
+    private final CdnSettings settings;
 
-    public CdNemovitostiMain(String ...args) {
-        this.settings = new MainSettings().process(args);
+    public CdNemovitostiJob(String ...args) {
+        this.settings = new CdnSettings(args);
+        settings.setLinksDataFile("urls.txt2018-02-20_23_13_670_links_size_336.txt");
     }
 
     @Override
     public void run() {
-        //Initialization
-        BasicConfigurator.configure();
-        Logger.getRootLogger().setLevel(Level.INFO);
-
-
-
         if (!Utils.ensureDirectoryExists(settings.getStorage())) {
             System.exit(1);
         }
@@ -44,12 +36,10 @@ public class CdNemovitostiMain extends IrJob {
         CdNemovitostiCrawler crawler = new CdNemovitostiCrawler(downloader);
         crawler.setPolitenessInterval(1200); // Be polite and don't send requests too often.
 
-        RecordIO io = new RecordIO();
-
-        Collection<String> urlsSet = null;
+        Collection<String> urlsSet;
         switch (settings.getLinksSource()) {
             case Load:
-                urlsSet = crawler.loadEstateLinks(settings.getStorageFile(settings.getLinksDataFile()));
+                urlsSet = loadUrls(settings.getStorageFile(settings.getLinksDataFile()));
                 break;
             case Fetch:
                 urlsSet = crawler.fetchEstateLinks();

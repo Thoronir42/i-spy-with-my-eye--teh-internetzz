@@ -1,6 +1,5 @@
 package cz.zcu.sdutends.kiwi.ted;
 
-import com.google.common.base.Function;
 import cz.zcu.kiv.nlp.ir.crawling.HtmlDownloaderFactory;
 import cz.zcu.kiv.nlp.ir.crawling.IHtmlDownloader;
 import cz.zcu.kiv.nlp.tools.Utils;
@@ -34,7 +33,7 @@ public class TedJob extends IrJob {
 
         try (IHtmlDownloader downloader = new HtmlDownloaderFactory().create(HtmlDownloaderFactory.Type.Selenium)){
             TedCrawler crawler = new TedCrawler(downloader);
-            crawler.setPolitenessInterval(1200);
+            crawler.setPolitenessInterval(settings.getPoliteInterval());
 
             Collection<String> urls = getUrlSet(crawler);
             urls = urls.stream()

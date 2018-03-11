@@ -1,12 +1,15 @@
 package cz.zcu.sdutends.kiwi.ted;
 
-import cz.zcu.kiv.nlp.tools.Utils;
 import cz.zcu.sdutends.kiwi.utils.AdvancedIO;
 
 import java.io.File;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class MiscHelper {
-    public static void striptHtml(String path) {
+    private static Pattern htmlTagContentRegex = Pattern.compile("<[\\w\\s\"=:._\\-]+>(.+)<\\/\\w+>");
+
+    public static void striptHtmlWithin(String path) {
         AdvancedIO<Talk> aio = new AdvancedIO<>(new TalkSedes());
 
         File dir = new File(path);
@@ -17,12 +20,35 @@ public class MiscHelper {
         for (File file : files) {
             Talk item = aio.loadFromFile(file);
 
-            item.setTitle(Utils.stripHtml(item.getTitle()));
-            item.setTalker(Utils.stripHtml(item.getTalker(), true));
-            item.setIntroduction(Utils.stripHtml(item.getIntroduction()));
-            item.setDateRecorded(Utils.stripHtml(item.getDateRecorded(), true));
+            item.setTitle(stripHtml(item.getTitle()));
+            item.setTalker(stripHtml(item.getTalker(), true));
+            item.setIntroduction(stripHtml(item.getIntroduction()));
+            item.setDateRecorded(stripHtml(item.getDateRecorded(), true));
 
             aio.save(file, item);
         }
+    }
+
+    public static String stripHtml(String string) {
+        return stripHtml(string, false);
+    }
+
+    public static String stripHtml(String string, boolean replaceNewlines) {
+        if(string == null) {
+            System.err.println("StripHtml recieved null");
+            return "";
+        }
+        if(replaceNewlines) {
+            string = string
+                    .replace("\n", "")
+                    .replaceAll("&\\w+;", "");
+        }
+
+        Matcher matcher = htmlTagContentRegex.matcher(string);
+        if(!matcher.matches()) {
+            return string;
+        }
+
+        return matcher.group(1).trim();
     }
 }

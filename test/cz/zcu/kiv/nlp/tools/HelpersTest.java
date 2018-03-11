@@ -1,10 +1,11 @@
 package cz.zcu.kiv.nlp.tools;
 
+import cz.zcu.sdutends.kiwi.ted.MiscHelper;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
 
-public class UtilsTest {
+public class HelpersTest {
 
     @Test
     public void stripHtml() {
@@ -15,7 +16,7 @@ public class UtilsTest {
                 {"&amp;Banana&nbsp;cake", "Bananacake"},
         };
         for (String[] aCase : cases) {
-            String stripped = Utils.stripHtml(aCase[0], true);
+            String stripped = MiscHelper.stripHtml(aCase[0], true);
             System.out.println(stripped);
             assertTrue(true);
 //            assertEquals(aCase[1], stripped);

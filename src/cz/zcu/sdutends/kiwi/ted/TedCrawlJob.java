@@ -2,17 +2,15 @@ package cz.zcu.sdutends.kiwi.ted;
 
 import cz.zcu.kiv.nlp.ir.crawling.HtmlDownloaderFactory;
 import cz.zcu.kiv.nlp.ir.crawling.IHtmlDownloader;
-import cz.zcu.kiv.nlp.tools.Utils;
 import cz.zcu.sdutends.kiwi.CrawlJobSettings;
-import cz.zcu.sdutends.kiwi.IrJob;
+import cz.zcu.sdutends.kiwi.ir.CrawlJob;
 import cz.zcu.sdutends.kiwi.utils.AdvancedIO;
 import cz.zcu.sdutends.kiwi.utils.ProgressRunnable;
 
-import java.io.File;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
-public class TedCrawlJob extends IrJob {
+public class TedCrawlJob extends CrawlJob {
 
     private final TedCrawlerSettings settings;
     private final AdvancedIO<Talk> aio;
@@ -32,13 +30,13 @@ public class TedCrawlJob extends IrJob {
 
     @Override
     public void run() {
-        String talksDirectory = "talks-" + Utils.time();
+        String talksDirectory = "talks-" + this.time();
 
         boolean allDirsExist = this.ensureDirectoriesExist(
                 this.settings.getStorage(),
                 this.settings.getStorage() + "/" + talksDirectory
         );
-        if(!allDirsExist) {
+        if (!allDirsExist) {
             return;
         }
 
@@ -55,7 +53,7 @@ public class TedCrawlJob extends IrJob {
             new ProgressRunnable<>(urls)
                     .run((url) -> {
                         Talk talk = crawler.retrieveTalk(url);
-                        String filename = Utils.time() + "_talk_" + talk.getUrl() + ".txt";
+                        String filename = this.time() + "_talk_" + talk.getUrl() + ".txt";
 
                         aio.save(settings.getStorageFile(talksDirectory, filename), talk);
                     });
@@ -68,12 +66,12 @@ public class TedCrawlJob extends IrJob {
     protected Collection<String> getUrlSet(TedCrawler crawler) {
         switch (settings.getLinksSource()) {
             case Load:
-                return loadUrls(settings.getStorageFile(settings.getLinksDataFile()));
+                return this.loadUrls(settings.getStorageFile(settings.getLinksDataFile()));
 
             case Fetch:
                 Collection<String> urlsSet = crawler.fetchTalkLinks();
-                File file = new File(settings.getStorageFile(Utils.time() + "_links_size_" + urlsSet.size() + ".txt"));
-                Utils.saveFile(file,urlsSet);
+                String fileName = "links_size_" + urlsSet.size() + "__" + this.time() + ".txt";
+                this.saveUrls(settings.getStorageFile(fileName), urlsSet);
                 return urlsSet;
 
             default:

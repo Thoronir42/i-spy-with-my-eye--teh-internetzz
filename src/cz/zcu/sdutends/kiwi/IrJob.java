@@ -1,34 +1,34 @@
 package cz.zcu.sdutends.kiwi;
 
-import cz.zcu.kiv.nlp.tools.Utils;
 import org.apache.log4j.Logger;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.Collection;
-import java.util.List;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 
 public abstract class IrJob implements Runnable {
-    private static Logger log = Logger.getLogger(IrJob.class);
+    protected static Logger log = Logger.getLogger(IrJob.class);
+
+    private static final DateFormat SDF = new SimpleDateFormat("yyyy-MM-dd_HH_mm_SS");
 
     protected boolean ensureDirectoriesExist(String... dirs) {
         for (String dir : dirs) {
-            if (!Utils.ensureDirectoryExists(dir)) {
-                return false;
+            File outputDir = new File(dir);
+            if (!outputDir.exists()) {
+                boolean mkdirs = outputDir.mkdirs();
+                if (!mkdirs) {
+                    log.error("Output directory can't be created! Please either create it or change the STORAGE parameter.\nOutput directory: " + outputDir);
+                    return false;
+                }
+                log.info("Output directory created: " + outputDir);
             }
+
         }
 
         return true;
     }
 
-    public Collection<String> loadUrls(String path) {
-        try {
-            List<String> strings = Utils.readLines(new File(path));
-            log.info("Loaded " + strings.size() + " urls");
-            return strings;
-        } catch (IOException e) {
-            log.warn("Url loading failed: " + e.toString());
-            return null;
-        }
+    public String time() {
+        return SDF.format(System.currentTimeMillis());
     }
 }

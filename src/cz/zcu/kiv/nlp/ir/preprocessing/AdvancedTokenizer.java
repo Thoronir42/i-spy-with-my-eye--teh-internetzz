@@ -34,7 +34,8 @@ public class AdvancedTokenizer implements Tokenizer {
             int start = matcher.start();
             int end = matcher.end();
 
-            words.add(text.substring(start, end));
+            String token = text.substring(start, end);
+            words.add(token);
         }
 
         String[] ws = new String[words.size()];
@@ -49,10 +50,13 @@ public class AdvancedTokenizer implements Tokenizer {
 
         parts.add("((\\w+\\*+\\w+)|(\\w+\\*+)|(\\*+\\w+))"); // * cenzura
         parts.add("(\\d{1,2}\\.\\d{1,2}\\.(\\d{2,4})?)"); // datum
+        parts.add("(\\d{1,3}:\\d{2})"); // time stamp
         parts.add("\\d+[.,](\\d+)"); // cislo
         parts.add("(</?.*?>)"); // html
+        parts.add("(https?|ftp):\\/\\/([\\w\\d-]+\\.?)+((\\/)([\\w\\d-]+))*\\/?(\\?[\\w\\d-]+(=[\\w\\d-]+)?)"); // url
+        parts.add("(\\([\\w\\s]+)\\)"); // zvukove efekty
+
         parts.add("([\\p{Punct}])"); // tecky a sracky
-        parts.add("(https?|ftp):\\/\\/([\\w\\d-]+\\.?)+((\\/)([\\w\\d-]+))*\\/?(\\?[\\w\\d-]+(=[\\w\\d-]+)?)"); // tecky a sracky
         parts.add("([\\p{L}\\d]+)"); // slova
 
         return String.join("|", parts);

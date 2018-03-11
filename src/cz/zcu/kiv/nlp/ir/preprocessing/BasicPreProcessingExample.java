@@ -57,7 +57,7 @@ public class BasicPreProcessingExample {
 
         wordsStatistics(documents, new AdvancedTokenizer(), agressive, false, true, true);
 
-        System.out.println();
+        System.out.println("Special words:");
         System.out.println(agressive.apply("vize"));
         System.out.println(agressive.apply("vizionar"));
         System.out.println(agressive.apply("vizionář"));
@@ -71,11 +71,27 @@ public class BasicPreProcessingExample {
     }
 
 
-    public static void wordsStatistics(List<String> lines, Tokenizer tokenizer, Stemmer stemmer, boolean removeAccentsBeforeStemming, boolean removeAccentsAfterStemming, boolean toLowercase) {
-        System.out.println("-------------------------------");
-        System.out.format(" Tokenizer: %s\n Stemmer: %s\n", tokenizer.toString(), stemmer == null ? "none" : stemmer.getClass().getSimpleName());
-        System.out.format(" Accents -before: %s, -after %s\tlowercase: %s\n", removeAccentsBeforeStemming, removeAccentsAfterStemming, toLowercase);
-        System.out.println("-------------------------------");
+    private static void wordsStatistics(List<String> lines, Tokenizer tokenizer, Stemmer stemmer, boolean removeAccentsBeforeStemming, boolean removeAccentsAfterStemming, boolean toLowercase) {
+        String stripAccents = "";
+        if (!removeAccentsAfterStemming && !removeAccentsBeforeStemming) {
+            stripAccents = "no";
+        } else {
+            if (removeAccentsBeforeStemming) {
+                stripAccents = "before";
+            }
+            if (removeAccentsAfterStemming) {
+                if (removeAccentsBeforeStemming) {
+                    stripAccents += ", ";
+                }
+                stripAccents += "after";
+            }
+        }
+
+        System.out.println("|-------------------------------");
+        System.out.println("| Tokenizer: " + tokenizer.toString());
+        System.out.println("| Stemmer: " + (stemmer == null ? "none" : stemmer.getClass().getSimpleName()));
+        System.out.format("| Strip accents: %s;\tlowercase: %s\n", stripAccents, toLowercase);
+        System.out.println("|-------------------------------");
 
         Set<String> words = new HashSet<>();
         long numberOfWords = 0;
@@ -106,12 +122,14 @@ public class BasicPreProcessingExample {
         System.out.println("numberOfWords: " + numberOfWords);
         System.out.println("numberOfUniqueWords: " + words.size());
         System.out.println("numberOfDocuments: " + numberOfDocuments);
-        System.out.println("average document char length: " + numberOfChars / (0.0 + numberOfDocuments));
-        System.out.println("average word char length: " + numberOfChars / (0.0 + numberOfWords));
+        System.out.println("average document char length: " + numberOfChars * 1f / numberOfDocuments);
+        System.out.println("average word char length: " + numberOfChars * 1f / numberOfWords);
 
 
         Object[] a = words.toArray();
         Arrays.sort(a);
         System.out.println(Arrays.toString(a));
+
+        System.out.println("\n");
     }
 }

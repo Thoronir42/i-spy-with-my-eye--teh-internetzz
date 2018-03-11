@@ -1,9 +1,11 @@
 package cz.zcu.sdutends.kiwi.ted;
 
 
+import cz.zcu.sdutends.kiwi.lucene.IEntity;
+
 import java.io.Serializable;
 
-public class Talk implements Serializable{
+public class Talk implements Serializable, IEntity {
     private String url;
 
     private String title;

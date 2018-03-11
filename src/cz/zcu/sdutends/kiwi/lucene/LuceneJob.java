@@ -1,18 +1,12 @@
-package cz.zcu.sdutends.kiwi.ted.lucene;
+package cz.zcu.sdutends.kiwi.lucene;
 
 import cz.zcu.kiv.nlp.ir.preprocessing.StopwordsLoader;
 import cz.zcu.sdutends.kiwi.IrJob;
-import cz.zcu.sdutends.kiwi.lucene.LuceneCli;
-import cz.zcu.sdutends.kiwi.ted.Talk;
-import cz.zcu.sdutends.kiwi.utils.AdvancedIO;
+import cz.zcu.sdutends.kiwi.ted.TedLuceneModule;
 import org.apache.log4j.Logger;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.CharArraySet;
 import org.apache.lucene.analysis.en.EnglishAnalyzer;
-import org.apache.lucene.document.Document;
-import org.apache.lucene.document.Field;
-import org.apache.lucene.document.StringField;
-import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
@@ -26,25 +20,28 @@ import org.apache.lucene.store.FSDirectory;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.List;
 
-public class TedLuceneJob extends IrJob {
-    private static Logger log = Logger.getLogger(TedLuceneJob.class);
+public final class LuceneJob extends IrJob {
+    private static Logger log = Logger.getLogger(LuceneJob.class);
 
-    private final TedLuceneSettings settings;
+    private final LuceneSettings settings;
+    private final LuceneModule module;
 
     private QueryParser qp;
 
     private IndexReader reader;
     private IndexSearcher searcher;
 
-    public TedLuceneJob(String... args) {
-        this.settings = new TedLuceneSettings(args);
+    public LuceneJob(String... args) {
+        this.settings = new LuceneSettings(args);
 
 
         settings
 //                .setDocumentsDirectory("./storage/ted/(talks") // todo: to index documents, uncomment
-                .setIndexStorage("./storage/ted/luceneIndex");
+                .setIndexStorage("./storage/ted/luceneIndex")
+                .setPromptApp("Ted Talks")
+                .setStopWordsFile("en.txt");
+        this.module = new TedLuceneModule();
     }
 
     @Override
@@ -57,10 +54,10 @@ public class TedLuceneJob extends IrJob {
             return;
         }
 
-        Analyzer analyzer = new EnglishAnalyzer(loadStopwords());
+        Analyzer analyzer = new EnglishAnalyzer(loadStopwords(settings.getStopWordsFile()));
 
         if (settings.indexDocuments()) {
-            Collection<Talk> talks = loadTalks();
+            Collection<IEntity> talks = this.module.loadEntities(settings.getDocumentsDirectory());
             log.info("Loaded " + talks.size() + " talks");
 
             IndexWriterConfig config = new IndexWriterConfig(analyzer);
@@ -78,6 +75,7 @@ public class TedLuceneJob extends IrJob {
             searcher = new IndexSearcher(reader);
 
             LuceneCli cli = new LuceneCli()
+                    .setPromptApp(settings.getPromptApp())
                     .setOnQuery(this::executeQuery);
 
             int queriesExecuted = cli.start(System.in);
@@ -90,26 +88,21 @@ public class TedLuceneJob extends IrJob {
         }
     }
 
-    private CharArraySet loadStopwords() {
+    private CharArraySet loadStopwords(String file) {
         CharArraySet stopwords = new CharArraySet(0, false);
-        stopwords.addAll(StopwordsLoader.load("en.txt"));
-        return  stopwords;
+        stopwords.addAll(StopwordsLoader.load(file));
+        return stopwords;
     }
 
-    private List<Talk> loadTalks() {
-        AdvancedIO<Talk> aio = new AdvancedIO<>(Talk.class);
-        return aio.loadFromDirectory(settings.getDocumentsDirectory());
-    }
-
-    private int indexTalks(Directory index, IndexWriterConfig config, Collection<Talk> talks) {
+    private int indexTalks(Directory index, IndexWriterConfig config, Collection<IEntity> entities) {
         int n = 0;
         try (IndexWriter w = new IndexWriter(index, config)) {
-            for (Talk talk : talks) {
+            for (IEntity entity : entities) {
                 try {
-                    w.addDocument(talkToDocument(talk));
+                    w.addDocument(this.module.entityToDocument(entity));
                     n++;
                 } catch (Exception ex) {
-                    log.warn("Talk " + talk.getUrl() + " could not be indexed: " + ex.toString());
+                    log.warn("Entity " + entity.getUrl() + " could not be indexed: " + ex.toString());
                 }
             }
 
@@ -144,24 +137,7 @@ public class TedLuceneJob extends IrJob {
         System.out.format("Found %d hits (skipping %d) out of total %d:\n\n", docs.scoreDocs.length, skip, docs.totalHits);
         for (int i = 0; i < docs.scoreDocs.length; i++) {
             ScoreDoc scoreDoc = docs.scoreDocs[i];
-            printDocument(i + skip + 1, searcher.doc(scoreDoc.doc));
+            System.out.format("%3d. %s", (i + skip + 1), this.module.entityDocumentToString(searcher.doc(scoreDoc.doc)));
         }
-    }
-
-    private static Document talkToDocument(Talk talk) {
-        Document doc = new Document();
-
-        doc.add(new TextField("title", talk.getTitle(), Field.Store.YES));
-        doc.add(new StringField("talker", talk.getTalker(), Field.Store.YES));
-        doc.add(new StringField("dateRecorded", talk.getDateRecorded(), Field.Store.YES));
-
-        doc.add(new TextField("introduction", talk.getIntroduction(), Field.Store.YES));
-        doc.add(new TextField("transcript", talk.getTranscript(), Field.Store.YES));
-
-        return doc;
-    }
-
-    private static void printDocument(int n, Document d) {
-        System.out.format("%2d. %s: %s [%s]\n", n, d.get("talker"), d.get("title"), d.get("dateRecorded"));
     }
 }

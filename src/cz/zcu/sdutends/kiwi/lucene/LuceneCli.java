@@ -1,6 +1,5 @@
 package cz.zcu.sdutends.kiwi.lucene;
 
-import org.apache.lucene.queryparser.classic.ParseException;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -12,7 +11,14 @@ import java.util.regex.Pattern;
 public class LuceneCli {
     private OnQuery onQuery;
 
+    private String promptApp = "Entities";
+
     public LuceneCli() {
+    }
+
+    public LuceneCli setPromptApp(String promptApp) {
+        this.promptApp = promptApp;
+        return this;
     }
 
     public LuceneCli setOnQuery(OnQuery onQuery) {
@@ -47,7 +53,7 @@ public class LuceneCli {
     }
 
     private String prompt(BufferedReader br) throws IOException {
-        System.out.print("Lucene-TedTalks >");
+        System.out.print("Lucene[" + promptApp + "] >");
         return br.readLine();
     }
 }

@@ -2,7 +2,6 @@ package cz.zcu.sdutends.kiwi.lucene;
 
 import cz.zcu.kiv.nlp.ir.preprocessing.StopwordsLoader;
 import cz.zcu.sdutends.kiwi.IrJob;
-import cz.zcu.sdutends.kiwi.ted.TedLuceneModule;
 import org.apache.log4j.Logger;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.CharArraySet;
@@ -20,28 +19,29 @@ import org.apache.lucene.store.FSDirectory;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.List;
 
-public final class LuceneJob extends IrJob {
+public final class LuceneJob<TEntity extends IEntity> extends IrJob {
     private static Logger log = Logger.getLogger(LuceneJob.class);
 
     private final LuceneSettings settings;
-    private final LuceneModule module;
+    private final LuceneModule<TEntity> module;
 
     private QueryParser qp;
 
     private IndexReader reader;
     private IndexSearcher searcher;
 
-    public LuceneJob(String... args) {
+    public LuceneJob(LuceneModule<TEntity> module, String... args) {
         this.settings = new LuceneSettings(args);
 
 
         settings
-//                .setDocumentsDirectory("./storage/ted/(talks") // todo: to index documents, uncomment
+//                .setDocumentsDirectory("./storage/ted/talks") // todo: to index documents, uncomment
                 .setIndexStorage("./storage/ted/luceneIndex")
                 .setPromptApp("Ted Talks")
                 .setStopWordsFile("en.txt");
-        this.module = new TedLuceneModule();
+        this.module = module;
     }
 
     @Override
@@ -57,12 +57,17 @@ public final class LuceneJob extends IrJob {
         Analyzer analyzer = new EnglishAnalyzer(loadStopwords(settings.getStopWordsFile()));
 
         if (settings.indexDocuments()) {
-            Collection<IEntity> talks = this.module.loadEntities(settings.getDocumentsDirectory());
-            log.info("Loaded " + talks.size() + " talks");
 
             IndexWriterConfig config = new IndexWriterConfig(analyzer);
-            int indexed = indexTalks(index, config, talks);
-            log.info("Indexed " + indexed + " talks");
+            try (IndexWriter w = new IndexWriter(index, config)) {
+                List<TEntity> entities = module.loadEntities(settings.getDocumentsDirectory());
+                log.info("Loaded " + entities.size() + " entities");
+
+                int indexed = this.indexEntities(w, entities);
+                log.info("Indexed " + indexed + " entities");
+            } catch (IOException ex) {
+                log.warn(ex.toString());
+            }
         }
 
         // the "title" arg specifies the default field to use
@@ -73,6 +78,8 @@ public final class LuceneJob extends IrJob {
         try (IndexReader reader = DirectoryReader.open(index)) {
             this.reader = reader;
             searcher = new IndexSearcher(reader);
+
+            log.info("Started lucene over " + reader.numDocs() + " documents");
 
             LuceneCli cli = new LuceneCli()
                     .setPromptApp(settings.getPromptApp())
@@ -94,21 +101,20 @@ public final class LuceneJob extends IrJob {
         return stopwords;
     }
 
-    private int indexTalks(Directory index, IndexWriterConfig config, Collection<IEntity> entities) {
+    public int indexEntities(IndexWriter writer, Collection<TEntity> entities) {
         int n = 0;
-        try (IndexWriter w = new IndexWriter(index, config)) {
-            for (IEntity entity : entities) {
-                try {
-                    w.addDocument(this.module.entityToDocument(entity));
-                    n++;
-                } catch (Exception ex) {
-                    log.warn("Entity " + entity.getUrl() + " could not be indexed: " + ex.toString());
-                }
-            }
 
-        } catch (IOException ex) {
-            log.warn(ex.toString());
+        for (TEntity entity : entities) {
+            try {
+                log.debug("Indexing " + entity.getUrl());
+                writer.addDocument(this.module.entityToDocument(entity));
+                n++;
+            } catch (Exception ex) {
+                log.warn("Entity " + entity.getUrl() + " could not be indexed: " + ex.toString());
+            }
         }
+
+
         return n;
     }
 
@@ -116,8 +122,9 @@ public final class LuceneJob extends IrJob {
         try {
             Query query = qp.parse(queryString);
             executeQuery(query, page);
-        } catch (IOException | ParseException e) {
+        } catch (IOException | ParseException | IllegalArgumentException e) {
             log.error(e.toString());
+            e.printStackTrace(System.out);
         }
     }
 
@@ -130,6 +137,7 @@ public final class LuceneJob extends IrJob {
         int skip = page * resultsPerPage;
 
         // 4. display results
+        log.info("Creating query on " + reader.numDocs() + " documents");
         TopScoreDocCollector collector = TopScoreDocCollector.create(reader.numDocs());
         searcher.search(query, collector);
         TopDocs docs = collector.topDocs(skip, resultsPerPage);

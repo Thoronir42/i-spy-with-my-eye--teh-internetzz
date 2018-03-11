@@ -11,12 +11,6 @@ import java.util.List;
 public abstract class IrJob implements Runnable {
     private static Logger log = Logger.getLogger(IrJob.class);
 
-    protected final RecordIO io;
-
-    public IrJob() {
-        this.io = new RecordIO();
-    }
-
     protected boolean ensureDirectoriesExist(String... dirs) {
         for (String dir : dirs) {
             if (!Utils.ensureDirectoryExists(dir)) {

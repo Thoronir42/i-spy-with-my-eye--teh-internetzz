@@ -1,25 +1,24 @@
 package cz.zcu.sdutends.kiwi.lucene;
 
-import cz.zcu.sdutends.kiwi.ted.Talk;
-import cz.zcu.sdutends.kiwi.utils.AdvancedIO;
+import org.apache.log4j.Logger;
 import org.apache.lucene.document.Document;
+import org.apache.lucene.index.IndexWriter;
 
+import java.util.Collection;
 import java.util.List;
 
 public abstract class LuceneModule<T extends IEntity> {
+    protected static final Logger log = Logger.getLogger(LuceneModule.class);
 
-    private final Class<T> tClass;
 
     public LuceneModule(Class<T> tClass) {
-        this.tClass = tClass;
     }
 
-    public List<T> loadEntities(String directory) {
-        AdvancedIO<T> aio = new AdvancedIO<>(tClass);
-        return aio.loadFromDirectory(directory);
-    }
+    public abstract List<T> loadEntities(String directory);
 
     protected abstract Document entityToDocument(T talk);
 
     protected abstract String  entityDocumentToString(Document d);
+
+
 }

@@ -1,6 +1,5 @@
 package cz.zcu.sdutends.kiwi.ir;
 
-import cz.zcu.sdutends.kiwi.cdNemovitosti.CdNemovitostiCrawler;
 import org.apache.log4j.Logger;
 import us.codecraft.xsoup.XPathEvaluator;
 import us.codecraft.xsoup.Xsoup;

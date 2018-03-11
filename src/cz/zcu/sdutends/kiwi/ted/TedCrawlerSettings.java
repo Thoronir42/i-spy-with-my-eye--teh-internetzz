@@ -1,13 +1,13 @@
 package cz.zcu.sdutends.kiwi.ted;
 
-import cz.zcu.sdutends.kiwi.IrJobSettings;
+import cz.zcu.sdutends.kiwi.CrawlJobSettings;
 
-class TedSettings extends IrJobSettings {
+class TedCrawlerSettings extends CrawlJobSettings {
 
     private int limit = 500;
     private int skip = 0;
 
-    public TedSettings(String... args) {
+    public TedCrawlerSettings(String... args) {
         this.process(args);
     }
 
@@ -25,7 +25,7 @@ class TedSettings extends IrJobSettings {
         return limit;
     }
 
-    public TedSettings setLimit(int limit) {
+    public TedCrawlerSettings setLimit(int limit) {
         this.limit = limit;
         return this;
     }
@@ -34,7 +34,7 @@ class TedSettings extends IrJobSettings {
         return skip;
     }
 
-    public TedSettings setSkip(int skip) {
+    public TedCrawlerSettings setSkip(int skip) {
         this.skip = skip;
         return this;
     }

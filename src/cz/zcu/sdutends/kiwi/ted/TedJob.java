@@ -3,8 +3,8 @@ package cz.zcu.sdutends.kiwi.ted;
 import cz.zcu.kiv.nlp.ir.crawling.HtmlDownloaderFactory;
 import cz.zcu.kiv.nlp.ir.crawling.IHtmlDownloader;
 import cz.zcu.kiv.nlp.tools.Utils;
+import cz.zcu.sdutends.kiwi.CrawlJobSettings;
 import cz.zcu.sdutends.kiwi.IrJob;
-import cz.zcu.sdutends.kiwi.IrJobSettings;
 import cz.zcu.sdutends.kiwi.utils.ProgressRunnable;
 
 import java.io.File;
@@ -13,14 +13,14 @@ import java.util.stream.Collectors;
 
 public class TedJob extends IrJob {
 
-    private final TedSettings settings;
+    private final TedCrawlerSettings settings;
 
     public TedJob(String... args) {
-        this.settings = new TedSettings(args);
+        this.settings = new TedCrawlerSettings(args);
 
         this.settings.setStorage("./storage/ted");
 
-        settings.setLinksSource(IrJobSettings.DataSource.Load);
+        settings.setLinksSource(CrawlJobSettings.DataSource.Load);
         settings.setLinksDataFile("2018-03-04_20_32_935_links_size_2707.txt");
 
         settings.setSkip(300).setLimit(10);

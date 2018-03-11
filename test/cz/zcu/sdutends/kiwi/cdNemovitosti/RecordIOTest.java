@@ -1,6 +1,7 @@
 package cz.zcu.sdutends.kiwi.cdNemovitosti;
 
 import cz.zcu.sdutends.kiwi.RecordIO;
+import cz.zcu.sdutends.kiwi.ted.Talk;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -14,13 +15,13 @@ public class RecordIOTest {
     public void saveLoad() {
         RecordIO io = new RecordIO();
 
-        List<Estate> estates = Arrays.asList(
-                new Estate().setCity("Nyrany").setCanalization("Maybe"),
-                new Estate().setRegion("That one").setWater("Some"));
+        List<Talk> estates = Arrays.asList(
+                new Talk().setTalker("Bob").setDateRecorded("NOW"),
+                new Talk().setTitle("Pizza cakes").setDateRecorded("1.2.3.4"));
 
         io.save("./test/recordTest.txt", estates);
 
-        Collection<Estate> loaded = io.loadCollection("./test/recordTest.txt", Estate.class);
+        Collection<Talk> loaded = io.loadCollection("./test/recordTest.txt", Talk.class);
 
         Assert.assertEquals("Loaded estates count ",2, loaded.size());
     }

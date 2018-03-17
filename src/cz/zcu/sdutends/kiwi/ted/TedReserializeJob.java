@@ -8,7 +8,7 @@ import java.util.List;
 public class TedReserializeJob extends IrJob {
 
     @Override
-    public void run() {
+    public boolean execute() {
         String from = "./storage/ted/talks";
         String to = "./storage/ted/talks-plain";
 
@@ -23,5 +23,7 @@ public class TedReserializeJob extends IrJob {
                 System.err.println("Failed writing " + talk.getUrl());
             }
         }
+
+        return true;
     }
 }

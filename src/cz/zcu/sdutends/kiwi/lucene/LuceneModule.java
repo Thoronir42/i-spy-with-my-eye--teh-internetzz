@@ -1,10 +1,9 @@
 package cz.zcu.sdutends.kiwi.lucene;
 
+import cz.zcu.sdutends.kiwi.IEntity;
 import org.apache.log4j.Logger;
 import org.apache.lucene.document.Document;
-import org.apache.lucene.index.IndexWriter;
 
-import java.util.Collection;
 import java.util.List;
 
 public abstract class LuceneModule<T extends IEntity> {

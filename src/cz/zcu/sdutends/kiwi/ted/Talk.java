@@ -1,6 +1,6 @@
 package cz.zcu.sdutends.kiwi.ted;
 
-import cz.zcu.sdutends.kiwi.lucene.IEntity;
+import cz.zcu.sdutends.kiwi.IEntity;
 
 
 public class Talk implements IEntity {

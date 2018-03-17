@@ -29,7 +29,7 @@ public class TedCrawlJob extends CrawlJob {
     }
 
     @Override
-    public void run() {
+    public boolean execute() {
         String talksDirectory = "talks-" + this.time();
 
         boolean allDirsExist = this.ensureDirectoriesExist(
@@ -37,7 +37,7 @@ public class TedCrawlJob extends CrawlJob {
                 this.settings.getStorage() + "/" + talksDirectory
         );
         if (!allDirsExist) {
-            return;
+            return false;
         }
 
 
@@ -60,7 +60,10 @@ public class TedCrawlJob extends CrawlJob {
 
         } catch (Exception ex) {
             ex.printStackTrace();
+            return false;
         }
+
+        return true;
     }
 
     protected Collection<String> getUrlSet(TedCrawler crawler) {

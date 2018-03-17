@@ -1,4 +1,4 @@
-package cz.zcu.sdutends.kiwi.lucene;
+package cz.zcu.sdutends.kiwi;
 
 public interface IEntity {
     String getUrl();

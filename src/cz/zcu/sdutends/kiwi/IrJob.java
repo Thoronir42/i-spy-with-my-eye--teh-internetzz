@@ -28,6 +28,27 @@ public abstract class IrJob implements Runnable {
         return true;
     }
 
+    @Override
+    public final void run() {
+        String className = getClass().getSimpleName();
+        boolean printExceptions = true;
+
+        try{
+            if(execute()) {
+                log.info(className + ": run complete");
+            } else {
+                throw new RuntimeException("Run returned falsy value");
+            }
+        } catch (Exception ex) {
+            log.warn(className + ": " + ex.toString());
+            if(printExceptions) {
+                ex.printStackTrace();
+            }
+        }
+    }
+
+    protected abstract boolean execute() throws Exception;
+
     public String time() {
         return SDF.format(System.currentTimeMillis());
     }

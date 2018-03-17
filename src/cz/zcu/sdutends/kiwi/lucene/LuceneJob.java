@@ -1,6 +1,7 @@
 package cz.zcu.sdutends.kiwi.lucene;
 
 import cz.zcu.kiv.nlp.ir.preprocessing.StopwordsLoader;
+import cz.zcu.sdutends.kiwi.IEntity;
 import cz.zcu.sdutends.kiwi.IrJob;
 import org.apache.log4j.Logger;
 import org.apache.lucene.analysis.Analyzer;
@@ -45,13 +46,13 @@ public final class LuceneJob<TEntity extends IEntity> extends IrJob {
     }
 
     @Override
-    public void run() {
+    public boolean execute() {
         Directory index;
         try {
             index = FSDirectory.open(new File(settings.getIndexStorage()).toPath());
         } catch (IOException e) {
             log.error("Failed opening FSDirectory: " + e.toString());
-            return;
+            return false;
         }
 
         Analyzer analyzer = new EnglishAnalyzer(loadStopwords(settings.getStopWordsFile()));
@@ -90,9 +91,12 @@ public final class LuceneJob<TEntity extends IEntity> extends IrJob {
 
         } catch (IOException ex) {
             log.error("Searcher error:" + ex.toString());
+            return false;
         } finally {
             this.reader = null;
         }
+
+        return true;
     }
 
     private CharArraySet loadStopwords(String file) {

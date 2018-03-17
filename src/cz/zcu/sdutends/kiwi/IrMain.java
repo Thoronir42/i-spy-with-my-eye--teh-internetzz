@@ -1,8 +1,7 @@
 package cz.zcu.sdutends.kiwi;
 
 
-import cz.zcu.sdutends.kiwi.lucene.LuceneJob;
-import cz.zcu.sdutends.kiwi.ted.TedLuceneModule;
+import cz.zcu.sdutends.kiwi.ted.TedElasticJob;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -13,7 +12,9 @@ public class IrMain {
         BasicConfigurator.configure();
         Logger.getRootLogger().setLevel(Level.INFO);
 
-        IrJob job = new LuceneJob<>(new TedLuceneModule());
+//        IrJob job = new TedCrawlJob();
+//        IrJob job = new LuceneJob<>(new TedLuceneModule());
+        IrJob job = new TedElasticJob();
 
         // todo: specify job, parameters...
 

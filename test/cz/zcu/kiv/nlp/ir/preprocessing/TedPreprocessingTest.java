@@ -1,7 +1,7 @@
 package cz.zcu.kiv.nlp.ir.preprocessing;
 
-import cz.zcu.sdutends.kiwi.ted.Talk;
-import cz.zcu.sdutends.kiwi.ted.TalkSedes;
+import cz.zcu.sdutends.kiwi.ted.model.Talk;
+import cz.zcu.sdutends.kiwi.ted.serdes.TalkSerDes;
 import cz.zcu.sdutends.kiwi.utils.AdvancedIO;
 import org.junit.Test;
 
@@ -22,7 +22,7 @@ public class TedPreprocessingTest {
                 .addTokenOperation(new CzechStemmerAgressive())
                 .applyDocumentOperationsOnStopWords();
 
-        AdvancedIO<Talk> taio = new AdvancedIO<>(new TalkSedes());
+        AdvancedIO<Talk> taio = new AdvancedIO<>(new TalkSerDes());
         taio.loadFromDirectory("./storage/ted/talks")
                 .forEach(talk -> {
                     basicPreProcessing.index(talk.getTranscript());

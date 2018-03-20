@@ -1,8 +1,9 @@
-package cz.zcu.sdutends.kiwi.ted;
+package cz.zcu.sdutends.kiwi.ted.serdes;
 
-import cz.zcu.sdutends.kiwi.utils.Sedes;
+import cz.zcu.sdutends.kiwi.ted.model.Talk;
+import cz.zcu.sdutends.kiwi.utils.SerDes;
 
-public class TalkSedes extends Sedes<Talk> {
+public class TalkSerDes extends SerDes<Talk> {
     private static final String SEP = "\n\0\n";
 
     @Override

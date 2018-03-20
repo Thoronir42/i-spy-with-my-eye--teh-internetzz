@@ -3,6 +3,10 @@ package cz.zcu.sdutends.kiwi.ted;
 import com.thedeanda.lorem.LoremIpsum;
 import cz.zcu.sdutends.kiwi.IrJob;
 import cz.zcu.sdutends.kiwi.elastic.ElasticClient;
+import cz.zcu.sdutends.kiwi.ted.model.Talk;
+import cz.zcu.sdutends.kiwi.ted.model.TalkStructured;
+import cz.zcu.sdutends.kiwi.ted.serdes.TalkStructuredSerDes;
+import cz.zcu.sdutends.kiwi.utils.AdvancedIO;
 import org.apache.log4j.Logger;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.index.IndexResponse;
@@ -18,8 +22,8 @@ import org.elasticsearch.transport.client.PreBuiltTransportClient;
 
 import java.io.IOException;
 import java.net.InetAddress;
+import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
 
 
 public class TedElasticJob extends IrJob {
@@ -52,53 +56,26 @@ public class TedElasticJob extends IrJob {
 
         log.info(ec.printConnectionInfo());
 
-        IndexResponse response;
+        AdvancedIO<TalkStructured> taio = new AdvancedIO<>(new TalkStructuredSerDes());
 
-        response = tem.prepareIndex(randTalk("url")).get();
-        printResponse(response);
+        List<TalkStructured> talks = taio.loadFromDirectory("./storage/ted/talks");
+        int count = talks.size();
+        log.info("Loaded " + count + " talks");
 
+        int block = 25;
+        int indexed = 0;
 
-        response = tem.prepareIndexXcb(randTalk("elser")).get();
-        printResponse(response);
+        for(int skip = 0; skip < count; skip += block) {
+            int endIndex = Math.min(skip + block, count);
+            List<TalkStructured> chunk = talks.subList(skip, endIndex);
 
-        response = tem.prepareIndexXcb(randTalk()).get();
-        printResponse(response);
+            log.info("Indexing talks from " + skip + " to " + endIndex);
+            tem.bulkIndex(chunk);
 
-
-        //get document by id
-        printDocument(tem.getTalkDocument("url"));
-        printDocument(tem.getTalkDocument("elser"));
-
-
-        //update documents
-        try {
-            tem.updateTalkPartial("url", "title", "ElasticSearch: Java API");
-        } catch (InterruptedException | ExecutionException e) {
-            e.printStackTrace();
+            indexed += endIndex - skip;
         }
-        printDocument(tem.getTalkDocument("url"));
 
-
-        try {
-            tem.updateTalkPartial("url", "tags", new String[]{"bigdata", "really"});
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        printDocument(tem.getTalkDocument("url"));
-
-        //searching documents
-        System.out.println("");
-        printSearchResponse(tem.searchTalkDocument("title", "ElasticSearch"));
-        printSearchResponse(tem.searchTalkDocument("transcript", "provides Java API"));
-        printSearchResponse(tem.searchTalkPhrase("transcript", "provides Java API"));
-
-
-        //delete documents
-        tem.deleteTalkDocument("url");
-        printDocument(tem.getTalkDocument("url"));
-
-        //bulk example
-        //bulkIndex(docsXContent, client);
+        log.info("Successfully indexed " + indexed + " talks");
 
         //close connection
         client.close();
@@ -111,7 +88,7 @@ public class TedElasticJob extends IrJob {
             log.warn("Response is null");
             return;
         }
-        
+
         Map<String, Object> source = resp.getSource();
 
         log.info("------------------------------");

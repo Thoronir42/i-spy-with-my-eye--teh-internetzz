@@ -1,7 +1,6 @@
 package cz.zcu.sdutends.kiwi.elastic;
 
 import cz.zcu.sdutends.kiwi.IEntity;
-import cz.zcu.sdutends.kiwi.ted.Talk;
 import org.apache.log4j.Logger;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
@@ -10,7 +9,7 @@ import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 
 import java.io.IOException;
-import java.util.List;
+import java.util.Collection;
 import java.util.Map;
 
 public abstract class ElasticDao<T extends IEntity> {
@@ -26,33 +25,25 @@ public abstract class ElasticDao<T extends IEntity> {
         this.type = type;
     }
 
-    public abstract Map<String, Object> toJson(T entity);
-
     public abstract XContentBuilder toXcb(T entity) throws IOException;
 
     protected TransportClient transport() {
         return client.transport();
     }
 
-    //create JSON document with Map
-    public IndexRequestBuilder prepareIndex(T talk) {
-        return transport().prepareIndex(this.index, "talk", talk.getUrl())
-                .setSource(this.toJson(talk));
-    }
-
     //XContentBuilder - ES helper
-    public IndexRequestBuilder prepareIndexXcb(T talk) throws IOException {
+    public IndexRequestBuilder prepareIndex(T talk) throws IOException {
         return transport().prepareIndex(this.index, "talk", talk.getUrl())
                 .setSource(this.toXcb(talk));
     }
 
 
-    public void bulkIndex(List<T> entities) {
+    public void bulkIndex(Collection<T> entities) {
         BulkRequestBuilder bulkRequest = transport().prepareBulk();
 
         for (T entity : entities) {
             try {
-                bulkRequest.add(this.prepareIndexXcb(entity));
+                bulkRequest.add(this.prepareIndex(entity));
             } catch (IOException e) {
                 e.printStackTrace();
             }

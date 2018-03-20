@@ -4,6 +4,8 @@ import cz.zcu.kiv.nlp.ir.crawling.HtmlDownloaderFactory;
 import cz.zcu.kiv.nlp.ir.crawling.IHtmlDownloader;
 import cz.zcu.sdutends.kiwi.CrawlJobSettings;
 import cz.zcu.sdutends.kiwi.ir.CrawlJob;
+import cz.zcu.sdutends.kiwi.ted.model.Talk;
+import cz.zcu.sdutends.kiwi.ted.serdes.TalkSerDes;
 import cz.zcu.sdutends.kiwi.utils.AdvancedIO;
 import cz.zcu.sdutends.kiwi.utils.ProgressRunnable;
 
@@ -25,7 +27,7 @@ public class TedCrawlJob extends CrawlJob {
 
         settings.setSkip(300).setLimit(10);
 
-        this.aio = new AdvancedIO<>(new TalkSedes());
+        this.aio = new AdvancedIO<>(new TalkSerDes());
     }
 
     @Override

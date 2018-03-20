@@ -1,6 +1,8 @@
 package cz.zcu.sdutends.kiwi.ted;
 
 import cz.zcu.sdutends.kiwi.IrJob;
+import cz.zcu.sdutends.kiwi.ted.model.Talk;
+import cz.zcu.sdutends.kiwi.ted.serdes.TalkSerDes;
 import cz.zcu.sdutends.kiwi.utils.AdvancedIO;
 
 import java.util.List;
@@ -14,7 +16,7 @@ public class TedReserializeJob extends IrJob {
 
         this.ensureDirectoriesExist(to);
 
-        AdvancedIO<Talk> taio = new AdvancedIO<>(new TalkSedes());
+        AdvancedIO<Talk> taio = new AdvancedIO<>(new TalkSerDes());
 
         List<Talk> talks = taio.loadFromDirectory(from);
 

@@ -12,10 +12,10 @@ import java.util.List;
 public class AdvancedIO<T> {
     private static Logger log = Logger.getLogger(AdvancedIO.class);
 
-    private final Sedes<T> sedes;
+    private final SerDes<T> serDes;
 
-    public AdvancedIO(Sedes<T> sedes) {
-        this.sedes = sedes;
+    public AdvancedIO(SerDes<T> serDes) {
+        this.serDes = serDes;
     }
 
     public List<T> loadFromDirectory(String path) {
@@ -34,7 +34,7 @@ public class AdvancedIO<T> {
         for (File file : files) {
             try{
                 String text = new String(Files.readAllBytes(file.toPath()));
-                result.add(sedes.deserialize(text));
+                result.add(serDes.deserialize(text));
             } catch (IOException | IllegalArgumentException ex) {
                 log.warn("Could not deserialize talk from file: " + file.getName());
                 ex.printStackTrace();
@@ -47,7 +47,7 @@ public class AdvancedIO<T> {
     public T loadFromFile(File file) {
         try{
             String text = new String(Files.readAllBytes(file.toPath()));
-            return sedes.deserialize(text);
+            return serDes.deserialize(text);
         } catch (IOException | IllegalArgumentException ex) {
             log.warn("Could not deserialize talk from file: " + file.getName());
             ex.printStackTrace();
@@ -61,7 +61,7 @@ public class AdvancedIO<T> {
 
     public boolean save(File file, T object) {
         try(FileWriter writer = new FileWriter(file)){
-            String serialize = sedes.serialize(object);
+            String serialize = serDes.serialize(object);
             writer.write(serialize);
 
             return true;

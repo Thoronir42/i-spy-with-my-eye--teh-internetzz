@@ -1,23 +1,24 @@
-package cz.zcu.sdutends.kiwi.ted;
+package cz.zcu.sdutends.kiwi.ted.model;
 
 import cz.zcu.sdutends.kiwi.IEntity;
 
+import java.time.LocalDate;
 
-public class Talk implements IEntity {
+public class TalkStructured implements IEntity{
     private String url;
 
     private String title;
     private String talker;
-    private String dateRecorded;
+    private LocalDate dateRecorded;
 
     private String introduction;
-    private String transcript;
+    private TranscriptBlock[] transcript;
 
     public String getUrl() {
         return url;
     }
 
-    public Talk setUrl(String url) {
+    public TalkStructured setUrl(String url) {
         this.url = url;
         return this;
     }
@@ -26,7 +27,7 @@ public class Talk implements IEntity {
         return title;
     }
 
-    public Talk setTitle(String title) {
+    public TalkStructured setTitle(String title) {
         this.title = title;
         return this;
     }
@@ -35,16 +36,16 @@ public class Talk implements IEntity {
         return talker;
     }
 
-    public Talk setTalker(String talker) {
+    public TalkStructured setTalker(String talker) {
         this.talker = talker;
         return this;
     }
 
-    public String getDateRecorded() {
+    public LocalDate getDateRecorded() {
         return dateRecorded;
     }
 
-    public Talk setDateRecorded(String dateRecorded) {
+    public TalkStructured setDateRecorded(LocalDate dateRecorded) {
         this.dateRecorded = dateRecorded;
         return this;
     }
@@ -53,16 +54,16 @@ public class Talk implements IEntity {
         return introduction;
     }
 
-    public Talk setIntroduction(String introduction) {
+    public TalkStructured setIntroduction(String introduction) {
         this.introduction = introduction;
         return this;
     }
 
-    public String getTranscript() {
+    public TranscriptBlock[] getTranscript() {
         return transcript;
     }
 
-    public Talk setTranscript(String transcript) {
+    public TalkStructured setTranscript(TranscriptBlock[] transcript) {
         this.transcript = transcript;
         return this;
     }

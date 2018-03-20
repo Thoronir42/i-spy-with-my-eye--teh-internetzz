@@ -2,6 +2,8 @@ package cz.zcu.sdutends.kiwi.ted;
 
 import cz.zcu.sdutends.kiwi.elastic.ElasticClient;
 import cz.zcu.sdutends.kiwi.elastic.ElasticDao;
+import cz.zcu.sdutends.kiwi.ted.model.TalkStructured;
+import cz.zcu.sdutends.kiwi.ted.model.TranscriptBlock;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.update.UpdateRequest;
@@ -10,40 +12,39 @@ import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
+import java.time.ZoneId;
 import java.util.concurrent.ExecutionException;
 
-public class TedElasticDao extends ElasticDao<Talk> {
+public class TedElasticDao extends ElasticDao<TalkStructured> {
+
+    private ZoneId zoneId = ZoneId.systemDefault();
 
     public TedElasticDao(ElasticClient client, String index) {
         super(client, index, "talk");
     }
 
-    public Map<String, Object> toJson(Talk talk) {
-        HashMap<String, Object> json = new HashMap<>();
+    public XContentBuilder toXcb(TalkStructured talk) throws IOException {
 
-        json.put("url", talk.getUrl());
-        json.put("title", talk.getTitle());
-        json.put("talker", talk.getTalker());
-        json.put("dateRecorded", talk.getDateRecorded());
 
-        json.put("introduction", talk.getIntroduction());
-        json.put("transcript", talk.getTranscript());
-
-        return json;
-    }
-
-    public XContentBuilder toXcb(Talk talk) throws IOException {
-        return XContentFactory.jsonBuilder()
+        XContentBuilder xb = XContentFactory.jsonBuilder()
                 .startObject()
                 .field("url", talk.getUrl())
                 .field("title", talk.getTitle())
                 .field("talker", talk.getTalker())
-                .field("dateRecorded", talk.getDateRecorded())
-                .field("introduction", talk.getIntroduction())
-                .field("transcript", talk.getTranscript())
-                .endObject();
+                .field("dateRecorded", talk.getDateRecorded().atStartOfDay(zoneId).toEpochSecond())
+                .field("introduction", talk.getIntroduction());
+
+        xb.startArray("transcript");
+        for (TranscriptBlock transcriptBlock : talk.getTranscript()) {
+            xb.startObject()
+                    .field("time", transcriptBlock.getTime())
+                    .field("text", transcriptBlock.getText())
+                    .endObject();
+        }
+        xb.endArray();
+        return xb.endObject();
+
+
     }
 
 

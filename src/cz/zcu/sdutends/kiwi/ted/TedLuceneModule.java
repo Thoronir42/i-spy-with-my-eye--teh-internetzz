@@ -2,6 +2,8 @@ package cz.zcu.sdutends.kiwi.ted;
 
 
 import cz.zcu.sdutends.kiwi.lucene.LuceneModule;
+import cz.zcu.sdutends.kiwi.ted.model.Talk;
+import cz.zcu.sdutends.kiwi.ted.serdes.TalkSerDes;
 import cz.zcu.sdutends.kiwi.utils.AdvancedIO;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
@@ -18,7 +20,7 @@ public class TedLuceneModule extends LuceneModule<Talk> {
 
     @Override
     public List<Talk> loadEntities(String directory) {
-        AdvancedIO<Talk> aio = new AdvancedIO<>(new TalkSedes());
+        AdvancedIO<Talk> aio = new AdvancedIO<>(new TalkSerDes());
         return aio.loadFromDirectory(directory);
     }
 

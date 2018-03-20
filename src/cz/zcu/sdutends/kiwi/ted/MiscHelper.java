@@ -1,5 +1,7 @@
 package cz.zcu.sdutends.kiwi.ted;
 
+import cz.zcu.sdutends.kiwi.ted.model.Talk;
+import cz.zcu.sdutends.kiwi.ted.serdes.TalkSerDes;
 import cz.zcu.sdutends.kiwi.utils.AdvancedIO;
 
 import java.io.File;
@@ -10,7 +12,7 @@ public class MiscHelper {
     private static Pattern htmlTagContentRegex = Pattern.compile("<[\\w\\s\"=:._\\-]+>(.+)<\\/\\w+>");
 
     public static void striptHtmlWithin(String path) {
-        AdvancedIO<Talk> aio = new AdvancedIO<>(new TalkSedes());
+        AdvancedIO<Talk> aio = new AdvancedIO<>(new TalkSerDes());
 
         File dir = new File(path);
         File[] files = dir.listFiles();

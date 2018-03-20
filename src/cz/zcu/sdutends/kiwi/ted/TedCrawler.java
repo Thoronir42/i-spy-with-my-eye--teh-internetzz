@@ -3,6 +3,7 @@ package cz.zcu.sdutends.kiwi.ted;
 import cz.zcu.kiv.nlp.ir.crawling.DocumentEvaluator;
 import cz.zcu.kiv.nlp.ir.crawling.IHtmlDownloader;
 import cz.zcu.sdutends.kiwi.ir.ACrawler;
+import cz.zcu.sdutends.kiwi.ted.model.Talk;
 import org.apache.log4j.Logger;
 import us.codecraft.xsoup.XPathEvaluator;
 import us.codecraft.xsoup.Xsoup;

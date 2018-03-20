@@ -2,6 +2,8 @@ package cz.zcu.sdutends.kiwi.ted.serdes;
 
 import cz.zcu.sdutends.kiwi.ted.model.TalkStructured;
 import cz.zcu.sdutends.kiwi.ted.model.TranscriptBlock;
+import cz.zcu.sdutends.kiwi.utils.SerDes;
+import cz.zcu.sdutends.kiwi.utils.SerDesException;
 import org.junit.Test;
 
 import java.io.File;
@@ -14,7 +16,7 @@ import static org.junit.Assert.*;
 public class TalkStructuredSerDesTest {
 
     @Test
-    public void deserialize() throws IOException {
+    public void deserialize() throws IOException, SerDesException {
         TalkStructuredSerDes sedes = new TalkStructuredSerDes();
 
         Path path = new File("./storage/ted/talks/adam_alter_why_our_screens_make_us_less_happy.txt").toPath();

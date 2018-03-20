@@ -1,5 +1,8 @@
 package cz.zcu.kiv.nlp.ir.crawling;
 
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.chrome.ChromeDriver;
+
 public class HtmlDownloaderFactory {
     public IHtmlDownloader create(String type) {
         switch (type.toLowerCase()) {
@@ -15,7 +18,10 @@ public class HtmlDownloaderFactory {
     public IHtmlDownloader create(Type type) {
         switch (type) {
             case Selenium:
-                return new HTMLDownloaderSelenium("./chromedriver.exe");
+                System.setProperty("webdriver.chrome.driver", "./chromedriver.exe");
+                WebDriver driver = new ChromeDriver();
+                return new HTMLDownloaderSelenium(driver)
+                        .setDocumentFetchMillis(350); // ensure the page is fully loaded and JS-initialized
 
             default:
             case Direct:

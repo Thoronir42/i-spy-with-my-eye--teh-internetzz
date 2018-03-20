@@ -4,8 +4,6 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
-import us.codecraft.xsoup.XPathEvaluator;
-import us.codecraft.xsoup.Xsoup;
 
 /**
  * This class is a demonstration of how crawler4j can be used to download a website
@@ -15,15 +13,17 @@ public class HTMLDownloaderSelenium extends AbstractHTMLDownloader {
 
     private WebDriver driver;
 
+    /** Time to wait between document request and evaluation */
+    private int documentFetchMillis = 100;
+
     /**
      * Constructor
      *
-     * @param driverPath
+     * @param driver
      */
-    public HTMLDownloaderSelenium(String driverPath) {
+    public HTMLDownloaderSelenium(WebDriver driver) {
         super();
-        System.setProperty("webdriver.chrome.driver", driverPath);
-        driver = new ChromeDriver();
+        this.driver = driver;
     }
 
     /**
@@ -38,7 +38,7 @@ public class HTMLDownloaderSelenium extends AbstractHTMLDownloader {
     protected Document getDocument(String url) {
         driver.get(url);
         try {
-            Thread.sleep(200);
+            Thread.sleep(this.documentFetchMillis);
         } catch (InterruptedException e) {
             log.warn("Sleep failed: " + e.toString());
         }
@@ -50,6 +50,11 @@ public class HTMLDownloaderSelenium extends AbstractHTMLDownloader {
         }
 
         return Jsoup.parse(dom);
+    }
+
+    public HTMLDownloaderSelenium setDocumentFetchMillis(int documentFetchMillis) {
+        this.documentFetchMillis = documentFetchMillis;
+        return this;
     }
 }
 

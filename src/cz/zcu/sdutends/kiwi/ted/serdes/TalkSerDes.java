@@ -2,6 +2,7 @@ package cz.zcu.sdutends.kiwi.ted.serdes;
 
 import cz.zcu.sdutends.kiwi.ted.model.Talk;
 import cz.zcu.sdutends.kiwi.utils.SerDes;
+import cz.zcu.sdutends.kiwi.utils.SerDesException;
 
 public class TalkSerDes extends SerDes<Talk> {
     private static final String SEP = "\n\0\n";
@@ -21,7 +22,7 @@ public class TalkSerDes extends SerDes<Talk> {
     }
 
     @Override
-    public Talk deserialize(String text) {
+    public Talk deserialize(String text) throws SerDesException {
         String[] parts = text.split(SEP);
         try {
             return new Talk()
@@ -32,7 +33,7 @@ public class TalkSerDes extends SerDes<Talk> {
                     .setIntroduction(parts[4])
                     .setTranscript(parts[5]);
         } catch (IndexOutOfBoundsException ex) {
-            throw new IllegalArgumentException("Failed talk deserialization", ex);
+            throw new SerDesException("Failed talk deserialization", ex);
         }
 
     }

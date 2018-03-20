@@ -35,7 +35,7 @@ public class AdvancedIO<T> {
             try{
                 String text = new String(Files.readAllBytes(file.toPath()));
                 result.add(serDes.deserialize(text));
-            } catch (IOException | IllegalArgumentException ex) {
+            } catch (IOException | SerDesException ex) {
                 log.warn("Could not deserialize talk from file: " + file.getName());
                 ex.printStackTrace();
             }
@@ -48,7 +48,7 @@ public class AdvancedIO<T> {
         try{
             String text = new String(Files.readAllBytes(file.toPath()));
             return serDes.deserialize(text);
-        } catch (IOException | IllegalArgumentException ex) {
+        } catch (IOException | SerDesException ex) {
             log.warn("Could not deserialize talk from file: " + file.getName());
             ex.printStackTrace();
         }

@@ -17,30 +17,31 @@ public class ProgressRunnable<I> {
     }
 
     public void run(Consumer<I> action) {
-        int count = 0;
-        int progressNotch = input.size() * 5 / 100;
-        if(progressNotch < 5) {
-            progressNotch = input.size();
-        }
+        this.run((I a) -> {
+            action.accept(a);
 
-        for (I input : input) {
-            action.accept(input);
-
-            if (++count % progressNotch == 0) {
-                log.info(count + " / " + this.input.size() + " = " + count *100.0f / this.input.size() + "% done.");
-            }
-        }
+            return null;
+        });
     }
 
-    public <T> Collection<T> run(Function<I, T> urlAction) {
+    public <T> Collection<T> run(Function<I, T> func) {
         Collection<T> items = new LinkedList<>();
         int count = 0;
-        int progressNotch = input.size() * 5 / 100;
+        int progressNotch = this.input.size() * 5 / 100;
         if(progressNotch < 5) {
-            progressNotch = input.size();
+            progressNotch = this.input.size();
         }
-        for (I input : input) {
-            items.add(urlAction.apply(input));
+
+        for (I input : this.input) {
+            try {
+                T result = func.apply(input);
+                if(result != null) {
+                    items.add(result);
+                }
+            } catch (Exception ex) {
+                log.error("Fail during processing of input #"+ count +": " + input + "\n" + ex.toString());
+                continue;
+            }
 
             if (++count % progressNotch == 0) {
                 log.info(String.format("%d / %d = %5.2f %% done.", count, this.input.size(), 100.0 * count / this.input.size()));

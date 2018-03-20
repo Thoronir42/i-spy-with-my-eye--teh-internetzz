@@ -31,7 +31,8 @@ public class TedElasticDao extends ElasticDao<TalkStructured> {
                 .field("url", talk.getUrl())
                 .field("title", talk.getTitle())
                 .field("talker", talk.getTalker())
-                .field("dateRecorded", talk.getDateRecorded().atStartOfDay(zoneId).toEpochSecond())
+//                .field("dateRecorded", talk.getDateRecorded().atStartOfDay(zoneId).toEpochSecond())
+                .field("dateRecorded", talk.getDateRecorded().atStartOfDay(zoneId).toEpochSecond() * 1000)
                 .field("introduction", talk.getIntroduction());
 
         xb.startArray("transcript");

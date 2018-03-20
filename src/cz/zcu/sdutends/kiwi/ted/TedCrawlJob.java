@@ -16,6 +16,7 @@ public class TedCrawlJob extends CrawlJob {
 
     private final TedCrawlerSettings settings;
     private final AdvancedIO<Talk> aio;
+    private final HtmlDownloaderFactory downloaderFactory;
 
     public TedCrawlJob(String... args) {
         this.settings = new TedCrawlerSettings(args);
@@ -25,9 +26,10 @@ public class TedCrawlJob extends CrawlJob {
         settings.setLinksSource(CrawlJobSettings.DataSource.Load);
         settings.setLinksDataFile("2018-03-04_20_32_935_links_size_2707.txt");
 
-        settings.setSkip(300).setLimit(10);
+        settings.setSkip(440).setLimit(560);
 
         this.aio = new AdvancedIO<>(new TalkSerDes());
+        this.downloaderFactory = new HtmlDownloaderFactory();
     }
 
     @Override
@@ -43,7 +45,7 @@ public class TedCrawlJob extends CrawlJob {
         }
 
 
-        try (IHtmlDownloader downloader = new HtmlDownloaderFactory().create(HtmlDownloaderFactory.Type.Selenium)) {
+        try (IHtmlDownloader downloader = downloaderFactory.create(HtmlDownloaderFactory.Type.Selenium)) {
             TedCrawler crawler = new TedCrawler(downloader);
             crawler.setPolitenessInterval(settings.getPoliteInterval());
 
@@ -55,7 +57,8 @@ public class TedCrawlJob extends CrawlJob {
             new ProgressRunnable<>(urls)
                     .run((url) -> {
                         Talk talk = crawler.retrieveTalk(url);
-                        String filename = this.time() + "_talk_" + talk.getUrl() + ".txt";
+//                        String filename = this.time() + "_talk_" + talk.getUrl() + ".txt";
+                        String filename = talk.getUrl() + ".txt";
 
                         aio.save(settings.getStorageFile(talksDirectory, filename), talk);
                     });

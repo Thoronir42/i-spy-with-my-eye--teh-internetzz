@@ -1,6 +1,7 @@
 package cz.zcu.sdutends.kiwi;
 
 
+import cz.zcu.sdutends.kiwi.ted.TedCrawlJob;
 import cz.zcu.sdutends.kiwi.ted.TedElasticJob;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Level;

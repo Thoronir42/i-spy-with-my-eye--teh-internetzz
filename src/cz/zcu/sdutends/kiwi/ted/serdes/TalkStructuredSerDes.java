@@ -3,6 +3,7 @@ package cz.zcu.sdutends.kiwi.ted.serdes;
 import cz.zcu.sdutends.kiwi.ted.model.TalkStructured;
 import cz.zcu.sdutends.kiwi.ted.model.TranscriptBlock;
 import cz.zcu.sdutends.kiwi.utils.SerDes;
+import cz.zcu.sdutends.kiwi.utils.SerDesException;
 
 import java.time.LocalDate;
 
@@ -31,19 +32,20 @@ public class TalkStructuredSerDes extends SerDes<TalkStructured> {
     }
 
     @Override
-    public TalkStructured deserialize(String text) {
+    public TalkStructured deserialize(String text) throws SerDesException {
         String[] parts = text.split(SEP);
-        try {
-            return new TalkStructured()
-                    .setUrl(parts[0])
-                    .setTitle(parts[1])
-                    .setTalker(parts[2])
-                    .setDateRecorded(parseDate(parts[3]))
-                    .setIntroduction(parts[4])
-                    .setTranscript(splitTranscript(parts[5]));
-        } catch (IndexOutOfBoundsException ex) {
-            throw new IllegalArgumentException("Failed talk deserialization", ex);
+        if (parts.length < 5) {
+            throw new SerDesException("Invalid part count");
         }
+
+        return new TalkStructured()
+                .setUrl(parts[0])
+                .setTitle(parts[1])
+                .setTalker(parts[2])
+                .setDateRecorded(parseDate(parts[3]))
+                .setIntroduction(parts[4])
+                .setTranscript(splitTranscript(parts[5]));
+
 
     }
 
@@ -58,10 +60,10 @@ public class TalkStructuredSerDes extends SerDes<TalkStructured> {
         return String.join("\n", parts);
     }
 
-    private TranscriptBlock[] splitTranscript(String transcript) {
+    private TranscriptBlock[] splitTranscript(String transcript) throws SerDesException {
         String[] parts = transcript.split("\n");
         TranscriptBlock[] blocks = new TranscriptBlock[parts.length];
-
+        try {
         for (int i = 0; i < parts.length; i++) {
             String minutes = parts[i].substring(0, 2);
             String seconds = parts[i].substring(3, 5);
@@ -72,7 +74,10 @@ public class TalkStructuredSerDes extends SerDes<TalkStructured> {
 
             blocks[i] = new TranscriptBlock(time, parts[i].substring(6));
         }
-        
+        } catch (NumberFormatException ex) {
+            throw new SerDesException(ex);
+        }
+
         return blocks;
     }
 
@@ -80,20 +85,26 @@ public class TalkStructuredSerDes extends SerDes<TalkStructured> {
         return months[date.getMonthValue() - 1] + " " + date.getYear();
     }
 
-    private LocalDate parseDate(String dateStr) {
+    private LocalDate parseDate(String dateStr) throws SerDesException {
+        dateStr = dateStr.trim();
         String[] parts = dateStr.split(" ");
 
         int monthIndex = -1;
         for (int i = 0; i < months.length; i++) {
-            if(months[i].equals(parts[0])) {
+            if (months[i].equals(parts[0])) {
                 monthIndex = i + 1;
                 break;
             }
         }
-        if(monthIndex == -1) {
-            throw new IllegalArgumentException("Invalid date string: " + dateStr);
+        if (monthIndex == -1) {
+            throw new SerDesException("Invalid date string: '" + dateStr + "'");
         }
 
-        return LocalDate.of(Integer.parseInt(parts[1].trim()), monthIndex, 1);
+        String year = parts[1].substring(0, 4);
+        try {
+            return LocalDate.of(Integer.parseInt(year), monthIndex, 1);
+        } catch (NumberFormatException ex) {
+            throw new SerDesException("Invalid year string: '" + year + "'");
+        }
     }
 }

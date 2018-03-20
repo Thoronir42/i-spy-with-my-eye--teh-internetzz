@@ -25,13 +25,13 @@ public class TedCrawler extends ACrawler {
         this.listingSuffix = "talks";
     }
 
-    public Collection<String> fetchTalkLinks() {
+    public List<String> fetchTalkLinks() {
         XPathEvaluator talkLinkXpath = Xsoup.compile("//*[@class='talk-link']//*[contains(@class, 'image')]/*[@class='ga-link']/@href");
 
         AtomicInteger max = new AtomicInteger(10); // todo: optimize initial page count?
         String listingUrl = this.siteRoot + '/' + this.listingSuffix + "?page=";
 
-        Collection<String> links = downloader.processUrl(listingUrl + 1, (de) -> {
+        List<String> links = downloader.processUrl(listingUrl + 1, (de) -> {
             // 5 bc on first page the links are 2, 3, 4, 5, ... <lastPage>
             String lastPageLink = de.string("//*[@class='pagination']//*[contains(@class,'pagination__link')][5]/@href");
             max.set(Integer.parseInt(lastPageLink.split("=")[1]));
@@ -52,7 +52,6 @@ public class TedCrawler extends ACrawler {
     }
 
     public Talk retrieveTalk(String url) {
-        bePolite();
         Talk talk = downloader.processUrl(normalizeUrl(url), evalMetadata);
 
         bePolite();
@@ -77,6 +76,8 @@ public class TedCrawler extends ACrawler {
                     .setDateRecorded(de.string("//div[@id='content']//div[@class='f:.9 p-x:3@md c:black t-a:l']/div[@class='m-b:2']/div/span[1]/allText()"));
 
             talk.setIntroduction(de.string("//div[@id='content']//div[@class='Grid__cell w:3of4@md']/p[@class='l-h:n m-b:1']/allText()"));
+
+            talk.setDateRecorded(talk.getDateRecorded().replace("\u00a0", ""));
 
             return talk;
         };

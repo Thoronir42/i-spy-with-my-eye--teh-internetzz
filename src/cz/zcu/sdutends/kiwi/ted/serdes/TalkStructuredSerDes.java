@@ -4,10 +4,13 @@ import cz.zcu.sdutends.kiwi.ted.model.TalkStructured;
 import cz.zcu.sdutends.kiwi.ted.model.TranscriptBlock;
 import cz.zcu.sdutends.kiwi.utils.SerDes;
 import cz.zcu.sdutends.kiwi.utils.SerDesException;
+import org.apache.log4j.Logger;
 
 import java.time.LocalDate;
 
 public class TalkStructuredSerDes extends SerDes<TalkStructured> {
+    private static final Logger log = Logger.getLogger(TalkStructuredSerDes.class);
+
     private static final String SEP = "\n\0\n";
 
     private static final String[] months = {
@@ -64,16 +67,21 @@ public class TalkStructuredSerDes extends SerDes<TalkStructured> {
         String[] parts = transcript.split("\n");
         TranscriptBlock[] blocks = new TranscriptBlock[parts.length];
         try {
-        for (int i = 0; i < parts.length; i++) {
-            String minutes = parts[i].substring(0, 2);
-            String seconds = parts[i].substring(3, 5);
+            for (int i = 0; i < parts.length; i++) {
+                int time = 0;
+                if ("0:00".equals(parts[i].substring(0, 4))) {
+//                    log.warn("Transcript contains 0:00 timestamp");
+                } else {
+                    String minutes = parts[i].substring(0, 2);
+                    String seconds = parts[i].substring(3, 5);
 
-            int time = Integer.parseInt(minutes) * 60 + Integer.parseInt(seconds);
+                    time = Integer.parseInt(minutes) * 60 + Integer.parseInt(seconds);
+                }
 
 //            System.out.println(minutes + ":" + seconds + " ~ " + time);
 
-            blocks[i] = new TranscriptBlock(time, parts[i].substring(6));
-        }
+                blocks[i] = new TranscriptBlock(time, parts[i].substring(6));
+            }
         } catch (NumberFormatException ex) {
             throw new SerDesException(ex);
         }

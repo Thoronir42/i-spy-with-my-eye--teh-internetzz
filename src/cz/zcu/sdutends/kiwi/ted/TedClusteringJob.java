@@ -1,5 +1,6 @@
 package cz.zcu.sdutends.kiwi.ted;
 
+import cz.zcu.kiv.nlp.ir.preprocessing.*;
 import cz.zcu.kiv.nlp.tigi.clustering.WordClustering;
 import cz.zcu.sdutends.kiwi.IrJob;
 import cz.zcu.sdutends.kiwi.ted.model.TalkStructured;
@@ -14,6 +15,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Collection;
 import java.util.List;
 
 public class TedClusteringJob extends IrJob {
@@ -44,13 +46,18 @@ public class TedClusteringJob extends IrJob {
             return false;
         }
 
+        log.info("Formatting starting");
         if (!formatDocuments(settings)) {
             return false;
         }
+        log.info("Formatting finished");
 
+        log.info("Clustering starting");
         if (!runClustering(settings)) {
-            return true;
+            log.warn("Failed to run the clustering part");
+            return false;
         }
+        log.info("Clustering finished");
 
         return true;
     }
@@ -59,12 +66,22 @@ public class TedClusteringJob extends IrJob {
         AdvancedIO<TalkStructured> taio = new AdvancedIO<>(new TalkStructuredSerDes());
         List<TalkStructured> talks = taio.loadFromDirectory(settings.getInputDirectory());
 
-        File clusteringFile = new File(settings.getClusteringFile());
+        Collection<String> stopWords = StopwordsLoader.load("cz.txt");
 
+        BasicPreProcessing preProcessing = new BasicPreProcessing(new AdvancedTokenizer(), stopWords)
+                .addDocumentOperation(String::toLowerCase)
+                .applyDocumentOperationsOnStopWords();
+
+        File clusteringFile = new File(settings.getClusteringFile());
         try (PrintWriter pw = new PrintWriter(new FileOutputStream(clusteringFile))) {
             int n = 0;
             for (TalkStructured talk : talks) {
-                pw.println(++n + "\t" + "X" + "\t" + talk.getIntroduction());
+                String[] tokens = preProcessing.tokenizeAndPreprocess(talk.getIntroduction());
+                String words = String.join(" ", tokens);
+
+                n++;
+//                System.out.println(n + "\t" + "X" + "\t" + words);
+                pw.println(n + "\t" + "X" + "\t" + words);
             }
         } catch (IOException ex) {
             log.error("Failed opening cluster file for writing");
@@ -88,7 +105,7 @@ public class TedClusteringJob extends IrJob {
         for (int NUM_CLUSTERS : new int[]{100, 500, 1000}) {
 
             File sspaceFile = new File(sspace);
-            log.info("SSpace file '" +sspace + "' exists: " + sspaceFile.exists());
+            log.info("SSpace file '" + sspace + "' exists: " + sspaceFile.exists());
             new WordClustering().cluster(sspaceFile, NUM_CLUSTERS);
         }
 

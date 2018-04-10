@@ -45,13 +45,14 @@ public class BasicPreProcessing implements PreProcessing {
         return this;
     }
 
-    @Override
-    public void index(String document) {
+    public String[] tokenizeAndPreprocess(String document) {
         for (PreProcessingOperation<String> operation : this.documentOperations) {
             document = operation.apply(document);
         }
 
-        for (String token : tokenizer.tokenize(document)) {
+        String[] tokens = tokenizer.tokenize(document);
+        for (int i = 0; i < tokens.length; i++) {
+            String token = tokens[i];
 //            String original = token;
             if (stopwords.contains(token)) {
 //                System.out.format("~ %-14s @%d\n", token, ((List<String>) stopwords).indexOf(token));
@@ -62,7 +63,15 @@ public class BasicPreProcessing implements PreProcessing {
             }
 
 //            System.out.format("+ %-14s %s \n", token, original);
+            tokens[i] = token;
+        }
 
+        return tokens;
+    }
+
+    @Override
+    public void index(String document) {
+        for (String token : tokenizeAndPreprocess(document)) {
             wordFrequencies.put(token, wordFrequencies.getOrDefault(token, 0) + 1);
         }
     }

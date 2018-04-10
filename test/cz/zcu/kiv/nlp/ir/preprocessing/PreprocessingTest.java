@@ -95,7 +95,7 @@ public class PreprocessingTest {
 
         final Map<String, Integer> wordFrequencies = preprocessing.getWordFrequencies();
         printWordFrequencies(wordFrequencies);
-        assertTrue(preprocessing.contains(preprocessing.getProcessedForm("pěstí")));
+        assertTrue(preprocessing.contains(preprocessing.getProcessedForm("(pěstí)")));
         assertTrue(preprocessing.contains(preprocessing.getProcessedForm("1280x800")));
         assertTrue(preprocessing.contains(preprocessing.getProcessedForm("pr*sata")));
     }

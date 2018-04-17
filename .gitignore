@@ -1,6 +1,8 @@
 /**/target/
 /storage/
 
+/data/weka/
+
 cv02_CrawlerIR/Crawler.iml
 cv02_CrawlerIR/chromedriver.exe
 KIV-IR.iml

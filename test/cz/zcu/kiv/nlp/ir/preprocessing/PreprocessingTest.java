@@ -235,7 +235,7 @@ public class PreprocessingTest {
         PreProcessing preprocessing = createNewInstance();
 
 
-        //todo zaindexujte vaše data a vytvořte testy na přítomnost nesmyslných slov, která se vyskytla ve vašem slovníku (a opravte)
+        // t-odo zaindexujte vaše data a vytvořte testy na přítomnost nesmyslných slov, která se vyskytla ve vašem slovníku (a opravte)
 
         final Map<String, Integer> wordFrequencies = preprocessing.getWordFrequencies();
         printWordFrequencies(wordFrequencies);

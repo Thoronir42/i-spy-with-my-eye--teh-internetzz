@@ -92,6 +92,31 @@
             <version>1.2.17</version>
         </dependency>
 
+        <!-- Weka -->
+        <dependency>
+            <groupId>edu.cmu.cs</groupId>
+            <artifactId>ark-tweet-nlp</artifactId>
+            <version>0.3.2</version>
+        </dependency>
+
+        <dependency>
+            <groupId>nz.ac.waikato.cms.weka</groupId>
+            <artifactId>LibSVM</artifactId>
+            <version>1.0.10</version>
+        </dependency>
+
+        <dependency>
+            <groupId>nz.ac.waikato.cms.weka</groupId>
+            <artifactId>LibLINEAR</artifactId>
+            <version>1.9.7</version>
+        </dependency>
+
+        <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <version>1.2.17</version>
+        </dependency>
+
         <!-- Clustering -->
         <dependency>
             <groupId>edu.ucla.sspace</groupId>

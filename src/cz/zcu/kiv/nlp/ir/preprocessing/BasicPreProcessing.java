@@ -16,6 +16,14 @@ public class BasicPreProcessing implements PreProcessing {
     private final List<PreProcessingOperation<String>> documentOperations;
     private final List<PreProcessingOperation<String>> tokenOperations;
 
+    public BasicPreProcessing() {
+        this(new BasicTokenizer(" "));
+    }
+
+    public BasicPreProcessing(Tokenizer tokenizer) {
+        this(tokenizer, new LinkedList<>());
+    }
+
     public BasicPreProcessing(Tokenizer tokenizer, Collection<String> stopwords) {
         this.tokenizer = tokenizer;
         this.stopwords = stopwords;
